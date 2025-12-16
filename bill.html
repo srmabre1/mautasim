@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Shop Billing System</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#eef1f4; margin:0; padding:15px; }
+    .container { max-width:1000px; margin:auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 6px 16px rgba(0,0,0,0.15); }
+    h1 { text-align:center; margin-bottom:15px; }
+    .row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+    .row input { padding:8px; flex:1; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+    th { background:#f5f5f5; }
+    input[type="number"], input[type="text"] { width:100%; box-sizing:border-box; padding:6px; }
+    button { padding:8px 14px; border:none; border-radius:6px; cursor:pointer; }
+    .add { background:#28a745; color:#fff; }
+    .remove { background:#dc3545; color:#fff; }
+    .blue { background:#007bff; color:#fff; }
+    .gray { background:#6c757d; color:#fff; }
+    .summary { margin-top:15px; font-size:16px; }
+    .summary div { display:flex; justify-content:space-between; margin-bottom:6px; }
+    .actions { display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap; margin-top:20px; }
+    @media print {
+      .actions, .add, .remove { display:none; }
+      body { background:#fff; }
+      .container { box-shadow:none; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Advanced Shop Billing</h1>
+
+  <div class="row">
+    <input id="shopName" placeholder="Shop Name" />
+    <input id="billNo" placeholder="Bill No" />
+    <input type="date" id="billDate" />
+  </div>
+
+  <div class="row">
+    <input id="customerName" placeholder="Customer Name" />
+    <input id="customerMobile" placeholder="Customer Mobile" />
+  </div>
+
+  <table id="billTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button class="add" onclick="addRow()">+ Add Item</button>
+
+  <div class="summary">
+    <div><span>Sub Total</span><span>₹ <span id="subTotal">0</span></span></div>
+    <div>
+      <span>GST (%)</span>
+      <input type="number" id="gst" value="0" oninput="calculate()" style="width:80px" />
+    </div>
+    <div>
+      <span>Discount (₹)</span>
+      <input type="number" id="discount" value="0" oninput="calculate()" style="width:80px" />
+    </div>
+    <div><strong>Grand Total</strong><strong>₹ <span id="grandTotal">0</span></strong></div>
+  </div>
+
+  <div class="signature" style="margin-top:40px; display:flex; justify-content:space-between; align-items:flex-end;">
+    <div>
+      <strong>Customer Signature</strong>
+      <div style="margin-top:30px; border-top:1px solid #000; width:200px;"></div>
+    </div>
+    <div style="text-align:right;">
+      <strong>Authorized Signature</strong>
+      <div style="margin-top:30px; border-top:1px solid #000; width:200px; margin-left:auto;"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="blue" onclick="window.print()">Print</button>
+    <button class="gray" onclick="saveBill()">Save Bill</button>
+    <button class="blue" onclick="downloadPDF()">Download PDF</button>
+    <button class="gray" onclick="loadLastBill()">Load Last Bill</button>
+  </div>
+</div>
+
+<script>
+  function addRow(item='', qty=1, price=0) {
+    const tbody = document.querySelector('#billTable tbody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="text" value="${item}" /></td>
+      <td><input type="number" min="1" value="${qty}" oninput="calculate()" /></td>
+      <td><input type="number" min="0" value="${price}" oninput="calculate()" /></td>
+      <td class="row-total">0</td>
+      <td><button class="remove" onclick="removeRow(this)">X</button></td>
+    `;
+    tbody.appendChild(row);
+    calculate();
+  }
+
+  function removeRow(btn) {
+    btn.closest('tr').remove();
+    calculate();
+  }
+
+  function calculate() {
+    let sub = 0;
+    document.querySelectorAll('#billTable tbody tr').forEach(r => {
+      const q = +r.children[1].querySelector('input').value || 0;
+      const p = +r.children[2].querySelector('input').value || 0;
+      const t = q * p;
+      r.querySelector('.row-total').innerText = t.toFixed(2);
+      sub += t;
+    });
+    document.getElementById('subTotal').innerText = sub.toFixed(2);
+
+    const gst = +document.getElementById('gst').value || 0;
+    const disc = +document.getElementById('discount').value || 0;
+    const grand = sub + (sub * gst / 100) - disc;
+    document.getElementById('grandTotal').innerText = grand.toFixed(2);
+  }
+
+  function saveBill() {
+    const data = {
+      shop: shopName.value,
+      billNo: billNo.value,
+      date: billDate.value,
+      customer: customerName.value,
+      mobile: customerMobile.value,
+      gst: gst.value,
+      discount: discount.value,
+      items: [...document.querySelectorAll('#billTable tbody tr')].map(r => ({
+        item: r.children[0].querySelector('input').value,
+        qty: r.children[1].querySelector('input').value,
+        price: r.children[2].querySelector('input').value
+      }))
+    };
+    localStorage.setItem('lastBill', JSON.stringify(data));
+    alert('Bill Saved');
+  }
+
+  function loadLastBill() {
+    const data = JSON.parse(localStorage.getItem('lastBill'));
+    if (!data) return alert('No saved bill');
+    shopName.value = data.shop;
+    billNo.value = data.billNo;
+    billDate.value = data.date;
+    customerName.value = data.customer;
+    customerMobile.value = data.mobile;
+    gst.value = data.gst;
+    discount.value = data.discount;
+    document.querySelector('#billTable tbody').innerHTML = '';
+    data.items.forEach(i => addRow(i.item, i.qty, i.price));
+  }
+
+  async function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    pdf.text('Shop Bill', 10, 10);
+    pdf.text(`Grand Total: ₹ ${grandTotal.innerText}`, 10, 20);
+    pdf.save('bill.pdf');
+  }
+
+  addRow();
+</script>
+</body>
+</html>
