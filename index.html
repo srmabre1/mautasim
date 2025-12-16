@@ -3,19 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <title>mautasim</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- html2pdf library (BEST for mobile) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
-body{font-family:Arial;background:#eaeaea;padding:20px}
-.invoice{background:#fff;max-width:900px;margin:auto;padding:20px;border:2px solid #000}
+body{font-family:Arial;background:#f0f0f0;padding:10px}
+.invoice{background:#fff;max-width:850px;margin:auto;padding:15px;border:2px solid #000}
 .center{text-align:center}
 .box{border:1px solid #000;padding:8px;margin-top:8px}
-.flex{display:flex;justify-content:space-between;gap:10px}
-input{width:100%;padding:4px;box-sizing:border-box}
+.flex{display:flex;gap:10px}
+.flex>div{width:50%}
+input{width:100%;padding:5px;box-sizing:border-box;margin:2px 0}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{border:1px solid #000;padding:6px;text-align:center}
-button{padding:8px 14px;margin-top:10px;cursor:pointer}
+button{padding:10px 15px;margin-top:10px;width:100%}
 .right{text-align:right}
-canvas{border:1px solid #000}
+canvas{border:1px solid #000;touch-action:none}
 </style>
 </head>
 <body>
@@ -25,30 +30,31 @@ canvas{border:1px solid #000}
 <h2 class="center">TAX INVOICE</h2>
 
 <div class="box">
-<b>Shop Name:</b> <input id="shop" value="NAVEED TEXTILES">
-<b>Address:</b> <input value="takiya khurhama">
-<div class="flex">
-<div><b>Phone:</b><input value="99064 03030"></div>
-<div><b>Email:</b><input value="naveedtextiles14@gmail.com"></div>
+<b>Shop Name</b>
+<input value="NAVEED TEXTILES">
+<b>Address</b>
+<input value="Takiya Khurhama"<div class="flex">
+<div><b>Phone</b><input value="99064 03030"></div>
+<div><b>Email</b><input value="naveedtextiles14@gmail.com"></div>
 </div>
 </div>
 
 <div class="box flex">
-<div style="width:50%">
+<div>
 <b>Bill To</b>
 <input placeholder="Customer Name">
 <input placeholder="Customer Address">
 <input placeholder="Customer Phone">
 </div>
-<div style="width:50%">
+<div>
 <b>Invoice Details</b>
-Bill No <input value="">
-Date <input type="date">
+<input placeholder="Bill No">
+<input type="date">
 </div>
 </div>
 
 <table id="items">
-<tr><th>#</th><th>Item Name</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
+<tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
 <tr>
 <td>1</td>
 <td><input></td>
@@ -57,25 +63,26 @@ Date <input type="date">
 <td class="amt">0</td>
 </tr>
 </table>
+
 <button onclick="addRow()">Add Item</button>
 
 <div class="box right">
-Discount % <input id="discount" value="0" oninput="calc()" style="width:80px"><br>
+Discount % <input id="disc" value="0" oninput="calc()" style="width:80px"><br>
 GST % <input id="gst" value="0" oninput="calc()" style="width:80px"><br>
 <h3 id="total">Total: ₹0</h3>
 </div>
 
 <div class="box">
 <b>Authorized Signature</b><br>
-<canvas id="sign" width="300" height="100"></canvas><br>
+<canvas id="sign" width="300" height="120"></canvas><br>
 <button onclick="clearSign()">Clear Signature</button>
 </div>
 
 <div class="box center">Web built by Mautasim</div>
 
-<button onclick="downloadPDF()">Download Bill PDF</button>
-
 </div>
+
+<button onclick="downloadPDF()">Download PDF</button>
 
 <script>
 function addRow(){
@@ -85,9 +92,8 @@ r.innerHTML=`<td>${t.rows.length-1}</td><td><input></td><td><input type='number'
 }
 
 function calc(){
-let rows=document.querySelectorAll('#items tr');
 let sum=0;
-rows.forEach((r,i)=>{
+document.querySelectorAll('#items tr').forEach((r,i)=>{
 if(i>0){
 let q=r.cells[2].firstChild.value||0;
 let p=r.cells[3].firstChild.value||0;
@@ -96,30 +102,36 @@ r.cells[4].innerText=a;
 sum+=a;
 }
 });
-let d=sum*(discount.value/100);
+let d=sum*(disc.value/100);
 let g=sum*(gst.value/100);
 document.getElementById('total').innerText='Total: ₹'+(sum+g-d);
 }
-  
-let c=document.getElementById('sign'),x=c.getContext('2d'),draw=false;
-c.onmousedown=()=>draw=true;
-c.onmouseup=()=>{draw=false;x.beginPath();}
-c.onmousemove=e=>{if(draw){x.lineTo(e.offsetX,e.offsetY);x.stroke();}}
-function clearSign(){x.clearRect(0,0,300,100)}
 
+// Signature (mobile + mouse)
+let c=document.getElementById('sign'),ctx=c.getContext('2d'),draw=false;
+c.addEventListener('mousedown',()=>draw=true);
+c.addEventListener('mouseup',()=>{draw=false;ctx.beginPath();});
+c.addEventListener('mousemove',e=>{if(draw){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();}});
+
+c.addEventListener('touchstart',e=>{draw=true;let t=e.touches[0];ctx.moveTo(t.clientX-c.offsetLeft,t.clientY-c.offsetTop);});
+c.addEventListener('touchmove',e=>{if(draw){let t=e.touches[0];ctx.lineTo(t.clientX-c.offsetLeft,t.clientY-c.offsetTop);ctx.stroke();}});
+c.addEventListener('touchend',()=>{draw=false;ctx.beginPath();});
+
+function clearSign(){ctx.clearRect(0,0,c.width,c.height)}
+
+// BEST MOBILE PDF
 function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  let pdf = new jsPDF('p','mm','a4');
-
-  pdf.html(document.getElementById('bill'), {
-    x: 5,
-    y: 5,
-    callback: function (doc) {
-      // Mobile-friendly way
-      window.open(doc.output('bloburl'), '_blank');
-    }
-  });
-                  }
+  html2pdf()
+    .set({
+      margin: 5,
+      filename: 'Invoice.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    })
+    .from(document.getElementById('bill'))
+    .save();
+}
 </script>
 </body>
 </html>
