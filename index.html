@@ -2,321 +2,116 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>by mautasim</title>
-
+<title>mautasim</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
-body{
-  font-family:Segoe UI,Arial;
-  background:linear-gradient(135deg,#e3f2fd,#fce4ec);
-  padding:15px;
-}
-.container{
-  max-width:1000px;
-  margin:auto;
-  background:#fff;
-  padding:25px;
-  border-radius:15px;
-  box-shadow:0 10px 25px rgba(0,0,0,.2);
-}
-h1{text-align:center;margin-bottom:20px}
-
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-bottom:12px;
-}
-.row input{
-  flex:1;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:20px;
-}
-th,td{
-  border:1px solid #ddd;
-  padding:10px;
-  text-align:center;
-}
-th{
-  background:#1976d2;
-  color:white;
-}
-tr:nth-child(even){background:#f9f9f9}
-
-button{
-  padding:10px 16px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
-}
-.add{background:#2e7d32;color:white;margin-top:10px}
-.remove{background:#c62828;color:white}
-.blue{background:#1565c0;color:white}
-.gray{background:#616161;color:white}
-
-.summary{
-  background:#f1f8ff;
-  margin-top:20px;
-  padding:15px;
-  border-radius:10px;
-}
-.summary div{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:8px;
-}
-
-.actions{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  justify-content:space-between;
-  margin-top:20px;
-}
-
-.signature{
-  margin-top:30px;
-  padding:15px;
-  background:#fafafa;
-  border-radius:10px;
-}
-
-@media print{
-  .actions,.add,.remove{display:none}
-  body{background:white}
-  .container{box-shadow:none}
-}
+body{font-family:Arial;background:#eaeaea;padding:20px}
+.invoice{background:#fff;max-width:900px;margin:auto;padding:20px;border:2px solid #000}
+.center{text-align:center}
+.box{border:1px solid #000;padding:8px;margin-top:8px}
+.flex{display:flex;justify-content:space-between;gap:10px}
+input{width:100%;padding:4px;box-sizing:border-box}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #000;padding:6px;text-align:center}
+button{padding:8px 14px;margin-top:10px;cursor:pointer}
+.right{text-align:right}
+canvas{border:1px solid #000}
 </style>
 </head>
-
 <body>
-<div class="container">
-<h1>Naveed Textiles</h1>
 
-<div class="row">
-  <input id="shopName" placeholder="Shop Name">
-  <input id="billNo" placeholder="Bill No">
-  <input type="date" id="billDate">
+<div class="invoice" id="bill">
+
+<h2 class="center">TAX INVOICE</h2>
+
+<div class="box">
+<b>Shop Name:</b> <input id="shop" value="NAVEED TEXTILES">
+<b>Address:</b> <input value="Your Shop Address">
+<div class="flex">
+<div><b>Phone:</b><input value="0000000000"></div>
+<div><b>Email:</b><input value="email@example.com"></div>
+</div>
 </div>
 
-<div class="row">
-  <input id="customerName" placeholder="Customer Name">
-  <input id="customerMobile" placeholder="Customer Mobile number">
+<div class="box flex">
+<div style="width:50%">
+<b>Bill To</b>
+<input placeholder="Customer Name">
+<input placeholder="Customer Address">
+<input placeholder="Customer Phone">
+</div>
+<div style="width:50%">
+<b>Invoice Details</b>
+Bill No <input value="1">
+Date <input type="date">
+</div>
 </div>
 
-<table id="billTable">
-<thead>
+<table id="items">
+<tr><th>#</th><th>Item Name</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
 <tr>
-  <th>Item</th>
-  <th>Qty</th>
-  <th>Price</th>
-  <th>Total</th>
-  <th>Action</th>
+<td>1</td>
+<td><input></td>
+<td><input type="number" oninput="calc()"></td>
+<td><input type="number" oninput="calc()"></td>
+<td class="amt">0</td>
 </tr>
-</thead>
-<tbody></tbody>
 </table>
+<button onclick="addRow()">Add Item</button>
 
-<button class="add" onclick="addRow()">+ Add Item</button>
-
-<div class="summary">
-  <div><span>Sub Total</span><span>₹ <span id="subTotal">0</span></span></div>
-  <div>
-    <span>GST (%)</span>
-    <input type="number" id="gst" value="0" oninput="calculate()" style="width:80px">
-  </div>
-  <div>
-    <span>Discount (%)</span>
-    <input type="number" id="discount" value="0" oninput="calculate()" style="width:80px">
-  </div>
-  <div><strong>Grand Total</strong><strong>₹ <span id="grandTotal">0</span></strong></div>
+<div class="box right">
+Discount % <input id="discount" value="0" oninput="calc()" style="width:80px"><br>
+GST % <input id="gst" value="0" oninput="calc()" style="width:80px"><br>
+<h3 id="total">Total: ₹0</h3>
 </div>
 
-<div class="signature">
-<strong>Authorized Signature</strong><br>
-<canvas id="signPad" width="300" height="120" style="border:1px solid #000;margin-top:10px"></canvas><br>
-<button class="gray" onclick="clearSign()">Clear Signature</button>
+<div class="box">
+<b>Authorized Signature</b><br>
+<canvas id="sign" width="300" height="100"></canvas><br>
+<button onclick="clearSign()">Clear Signature</button>
 </div>
 
-<div class="actions">
-<button class="blue" onclick="window.print()">Print</button>
-<button class="gray" onclick="saveBill()">Save Bill</button>
-<button class="blue" onclick="downloadPDF()">Download PDF</button>
-<button class="gray" onclick="loadBill()">Load Last Bill</button>
-</div>
+<div class="box center">Web built by Mautasim</div>
+
+<button onclick="downloadPDF()">Download Bill PDF</button>
+
 </div>
 
 <script>
-function addRow(item='',qty=1,price=0){
-  const tb=document.querySelector('#billTable tbody');
-  const tr=document.createElement('tr');
-  tr.innerHTML=`
-  <td><input value="${item}"></td>
-  <td><input type="number" value="${qty}" oninput="calculate()"></td>
-  <td><input type="number" value="${price}" oninput="calculate()"></td>
-  <td class="rowTotal">0</td>
-  <td><button class="remove" onclick="this.closest('tr').remove();calculate()">X</button></td>`;
-  tb.appendChild(tr);
-  calculate();
+function addRow(){
+let t=document.getElementById('items');
+let r=t.insertRow();
+r.innerHTML=`<td>${t.rows.length-1}</td><td><input></td><td><input type='number' oninput='calc()'></td><td><input type='number' oninput='calc()'></td><td class='amt'>0</td>`;
 }
 
-function calculate(){
-  let sub=0;
-  document.querySelectorAll('#billTable tbody tr').forEach(r=>{
-    let q=+r.children[1].firstChild.value||0;
-    let p=+r.children[2].firstChild.value||0;
-    let t=q*p;
-    r.querySelector('.rowTotal').innerText=t.toFixed(2);
-    sub+=t;
-  });
-  subTotal.innerText=sub.toFixed(2);
-  let g=+gst.value||0;
-  let d=+discount.value||0;
-  let grand=sub+(sub*g/100)-(sub*d/100);
-  grandTotal.innerText=grand.toFixed(2);
+function calc(){
+let rows=document.querySelectorAll('#items tr');
+let sum=0;
+rows.forEach((r,i)=>{
+if(i>0){
+let q=r.cells[2].firstChild.value||0;
+let p=r.cells[3].firstChild.value||0;
+let a=q*p;
+r.cells[4].innerText=a;
+sum+=a;
+}
+});
+let d=sum*(discount.value/100);
+let g=sum*(gst.value/100);
+document.getElementById('total').innerText='Total: ₹'+(sum+g-d);
 }
 
-function saveBill(){
-  const data={
-    shop:shopName.value,
-    bill:billNo.value,
-    date:billDate.value,
-    customer:customerName.value,
-    mobile:customerMobile.value,
-    gst:gst.value,
-    discount:discount.value,
-    items:[...document.querySelectorAll('#billTable tbody tr')].map(r=>({
-      item:r.children[0].firstChild.value,
-      qty:r.children[1].firstChild.value,
-      price:r.children[2].firstChild.value
-    })),
-    sign:signPad.toDataURL()
-  };
-  localStorage.setItem('bill',JSON.stringify(data));
-  alert("Bill Saved");
+let c=document.getElementById('sign'),x=c.getContext('2d'),draw=false;
+c.onmousedown=()=>draw=true;
+c.onmouseup=()=>{draw=false;x.beginPath();}
+c.onmousemove=e=>{if(draw){x.lineTo(e.offsetX,e.offsetY);x.stroke();}}
+function clearSign(){x.clearRect(0,0,300,100)}
+
+function downloadPDF(){
+const { jsPDF } = window.jspdf;
+let pdf=new jsPDF('p','mm','a4');
+pdf.html(document.getElementById('bill'),{callback:p=>p.save('Invoice.pdf'),x:5,y:5});
 }
-
-function loadBill(){
-  const d=JSON.parse(localStorage.getItem('bill'));
-  if(!d) return alert("No saved bill");
-  shopName.value=d.shop;
-  billNo.value=d.bill;
-  billDate.value=d.date;
-  customerName.value=d.customer;
-  customerMobile.value=d.mobile;
-  gst.value=d.gst;
-  discount.value=d.discount;
-  document.querySelector('#billTable tbody').innerHTML='';
-  d.items.forEach(i=>addRow(i.item,i.qty,i.price));
-  let img=new Image();
-  img.onload=()=>ctx.drawImage(img,0,0);
-  img.src=d.sign;
-}
-
-const canvas=document.getElementById('signPad');
-const ctx=canvas.getContext('2d');
-let draw=false;
-canvas.onmousedown=()=>draw=true;
-canvas.onmouseup=()=>draw=false;
-canvas.onmousemove=e=>{
-  if(!draw) return;
-  ctx.lineWidth=2;
-  ctx.lineTo(e.offsetX,e.offsetY);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX,e.offsetY);
-};
-
-function clearSign(){ctx.clearRect(0,0,canvas.width,canvas.height)}
-
-async function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-  let y = 10;
-
-  pdf.setFontSize(14);
-  pdf.text(shopName.value || "Shop Bill", 10, y);
-  y += 8;
-
-  pdf.setFontSize(10);
-  pdf.text(`Bill No: ${billNo.value}`, 10, y);
-  pdf.text(`Date: ${billDate.value}`, 140, y);
-  y += 6;
-
-  pdf.text(`Customer: ${customerName.value}`, 10, y);
-  pdf.text(`Mobile: ${customerMobile.value}`, 140, y);
-  y += 10;
-
-  // Table header
-  pdf.setFontSize(11);
-  pdf.text("Item", 10, y);
-  pdf.text("Qty", 90, y);
-  pdf.text("Price", 110, y);
-  pdf.text("Total", 150, y);
-  y += 4;
-  pdf.line(10, y, 200, y);
-  y += 4;
-
-  let sub = 0;
-
-  document.querySelectorAll("#billTable tbody tr").forEach(row=>{
-    const item = row.children[0].firstChild.value;
-    const qty = row.children[1].firstChild.value;
-    const price = row.children[2].firstChild.value;
-    const total = qty * price;
-
-    pdf.text(item, 10, y);
-    pdf.text(qty.toString(), 90, y);
-    pdf.text(price.toString(), 110, y);
-    pdf.text(total.toFixed(2), 150, y);
-
-    y += 6;
-    sub += total;
-
-    if(y > 270){
-      pdf.addPage();
-      y = 10;
-    }
-  });
-
-  y += 6;
-  pdf.line(10, y, 200, y);
-  y += 6;
-
-  const gstAmt = sub * (gst.value/100);
-  const discAmt = sub * (discount.value/100);
-  const grand = sub + gstAmt - discAmt;
-
-  pdf.text(`Sub Total: ₹ ${sub.toFixed(2)}`, 130, y); y+=6;
-  pdf.text(`GST (${gst.value}%): ₹ ${gstAmt.toFixed(2)}`, 130, y); y+=6;
-  pdf.text(`Discount (${discount.value}%): ₹ ${discAmt.toFixed(2)}`, 130, y); y+=6;
-  pdf.setFontSize(12);
-  pdf.text(`Grand Total: ₹ ${grand.toFixed(2)}`, 130, y);
-
-  // Signature
-  const signImg = signPad.toDataURL("image/png");
-  pdf.addImage(signImg, "PNG", 10, y+10, 60, 25);
-  pdf.text("Authorized Signature", 10, y+38);
-pdf.setFontSize(9);
-pdf.setTextColor(120);
-pdf.text("Web built by Mautasim", 105, 290, { align: "center" });
-
-  pdf.save("full-bill.pdf");
-}
-
-
-addRow();
 </script>
 </body>
 </html>
-
