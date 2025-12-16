@@ -119,13 +119,12 @@ c.addEventListener('touchend',()=>{draw=false;ctx.beginPath();});
 
 function clearSign(){ctx.clearRect(0,0,c.width,c.height)}
 
-// BEST MOBILE PDF
 function downloadPDF(){
   const bill = document.getElementById('bill');
 
-  // Clone bill so inputs convert to text
   const clone = bill.cloneNode(true);
 
+  // convert inputs to text
   clone.querySelectorAll('input').forEach(inp => {
     const span = document.createElement('span');
     span.innerText = inp.value || ' ';
@@ -139,7 +138,11 @@ function downloadPDF(){
       margin: 5,
       filename: 'Invoice.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: {
+        scale: 2,
+        windowWidth: bill.scrollWidth,   // 🔥 FIX
+        windowHeight: bill.scrollHeight  // 🔥 FIX
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     })
     .from(clone)
