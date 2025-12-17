@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shop Bill</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shop Billing</title>
 
-<!-- PDF LIB -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body{font-family:Arial;background:#f2f2f2;margin:0;padding:10px}
-#pdfWrapper{background:#fff;max-width:800px;margin:auto;padding:10px}
+#pdfWrapper{background:#fff;max-width:800px;margin:auto;padding:15px}
 .header{text-align:center}
 .header img{max-width:120px}
-.box{border:1px solid #000;padding:6px;margin-top:6px}
-.flex{display:flex;gap:6px;flex-wrap:wrap}
-input{width:100%;padding:5px}
-table{width:100%;border-collapse:collapse;margin-top:8px}
-th,td{border:1px solid #000;padding:4px;text-align:center}
-button{width:100%;padding:8px;margin-top:6px}
-canvas{border:1px solid #000;width:100%;height:120px;touch-action:none}
-.footer{text-align:center;font-size:12px;margin-top:10px}
+.box{border:1px solid #000;padding:8px;margin-top:8px}
+.flex{display:flex;gap:10px;flex-wrap:wrap}
+.flex > div{flex:1}
+input{width:100%;padding:6px;box-sizing:border-box}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #000;padding:6px;text-align:center}
+button{padding:8px;margin-top:10px;width:100%}
+canvas{border:1px solid #000;width:100%;height:150px;touch-action:none}
+.footer{text-align:center;margin-top:10px;font-size:12px}
+@media print{body{background:#fff}}
 </style>
 </head>
 
@@ -29,8 +32,8 @@ canvas{border:1px solid #000;width:100%;height:120px;touch-action:none}
 <div id="pdfWrapper">
 
 <div class="header">
-<img src="logo.png">
-<h2>NAVEED TEXTILES</h2>
+  <img src="logo.png" alt="Logo">
+  <h2>NAVEED TEXTILES</h2>
 </div>
 
 <div class="box">
@@ -38,15 +41,15 @@ Email: naveedtextiles14@gmail.com<br>
 Phone: 9906403030 / 9906851124
 </div>
 
+<!-- Part A: Customer -->
 <div class="box flex">
-<div>
-📄 Bill No
-<input id="invoiceNo" readonly>
+  <div>Customer Name<input id="custName"></div>
+  <div>Customer Phone<input id="custPhone"></div>
 </div>
-<div>
-📅 Date
-<input id="billDate" readonly>
-</div>
+
+<div class="box flex">
+  <div>Bill No<input id="invoiceNo" readonly></div>
+  <div>📅 Date<input id="billDate" readonly></div>
 </div>
 
 <table>
@@ -66,113 +69,89 @@ Phone: 9906403030 / 9906851124
 
 <button onclick="addRow()">Add Item</button>
 
+<!-- Part B: GST -->
 <div class="box flex">
-<div>Discount %<input id="disc" type="number" value="0" oninput="calc()"></div>
-<div>Paid ₹<input id="paid" type="number" value="0" oninput="calc()"></div>
+  <div>Discount %<input id="disc" type="number" value="0" oninput="calc()"></div>
+  <div>GST %<input id="gst" type="number" value="0" oninput="calc()"></div>
+</div>
+
+<div class="box flex">
+  <div>Paid ₹<input id="paid" type="number" value="0" oninput="calc()"></div>
 </div>
 
 <h3 id="total">Total: ₹0</h3>
 <h3 id="balance">Balance: ₹0</h3>
 
 <div class="box">
-<b>Authorized Signature</b>
+<h3>Authorized Signature</h3>
 <canvas id="sign"></canvas>
 <button onclick="clearSign()">Clear Signature</button>
 </div>
 
 <div class="footer">Web built by Mautasim</div>
-
 </div>
 
 <button onclick="downloadPDF()">Download PDF</button>
-<button onclick="sharePDF()">WhatsApp PDF</button>
+<button onclick="whatsappPDF()">WhatsApp PDF</button>
 
 <script>
-/* Bill No + Date */
-let inv = localStorage.getItem("inv") || 1000;
+// Invoice & Date
+let inv = localStorage.getItem('inv') || 1000;
 inv++;
-localStorage.setItem("inv",inv);
-invoiceNo.value="INV-"+inv;
-billDate.value=new Date().toISOString().split("T")[0];
+localStorage.setItem('inv',inv);
+invoiceNo.value = 'INV-' + inv;
+billDate.value = new Date().toISOString().split('T')[0];
 
-/* Items */
 function addRow(){
-const t=document.getElementById("items");
-const r=t.insertRow();
-r.innerHTML=`<td>${t.rows.length}</td>
-<td><input></td>
-<td><input type="number" oninput="calc()"></td>
-<td><input type="number" oninput="calc()"></td>
-<td class="amt">0</td>`;
+ const t=document.getElementById('items');
+ const r=t.insertRow();
+ r.innerHTML=`<td>${t.rows.length}</td><td><input></td><td><input type=number oninput=calc()></td><td><input type=number oninput=calc()></td><td class=amt>0</td>`;
 }
 
 function calc(){
-let sum=0;
-document.querySelectorAll("#items tr").forEach(r=>{
-let q=r.cells[2].children[0].value||0;
-let p=r.cells[3].children[0].value||0;
-let a=q*p;
-r.querySelector(".amt").innerText=a;
-sum+=a;
-});
-let d=sum*(disc.value/100);
-let total=sum-d;
-totalEl=`Total: ₹${total}`;
-document.getElementById("total").innerText=totalEl;
-document.getElementById("balance").innerText=`Balance: ₹${total-(paid.value||0)}`;
+ let sum=0;
+ document.querySelectorAll('#items tr').forEach(r=>{
+  let q=r.cells[2].querySelector('input').value||0;
+  let p=r.cells[3].querySelector('input').value||0;
+  let a=q*p;
+  r.querySelector('.amt').innerText=a;
+  sum+=a;
+ });
+ let d=sum*(disc.value||0)/100;
+ let g=(sum-d)*(gst.value||0)/100;
+ let total=sum-d+g;
+ totalEl=`Total: ₹${total}`;
+ totalDiv=document.getElementById('total');
+ totalDiv.innerText=totalEl;
+ balance.innerText='Balance: ₹'+(total-(paid.value||0));
 }
 
-/* Signature */
-const canvas=document.getElementById("sign");
-const ctx=canvas.getContext("2d");
-ctx.lineWidth=2;
+// Signature
+const canvas=document.getElementById('sign');
+const ctx=canvas.getContext('2d');
 let draw=false;
+function pos(e){const r=canvas.getBoundingClientRect();if(e.touches)return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};return{x:e.offsetX,y:e.offsetY}}
+canvas.onmousedown=e=>{draw=true;ctx.beginPath();let p=pos(e);ctx.moveTo(p.x,p.y)};
+canvas.onmousemove=e=>{if(!draw)return;let p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()};
+canvas.onmouseup=()=>draw=false;
+canvas.ontouchstart=e=>{draw=true;ctx.beginPath();let p=pos(e);ctx.moveTo(p.x,p.y)};
+canvas.ontouchmove=e=>{e.preventDefault();if(!draw)return;let p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()};
+canvas.ontouchend=()=>draw=false;
+function clearSign(){ctx.clearRect(0,0,canvas.width,canvas.height)}
 
-function pos(e){
-const r=canvas.getBoundingClientRect();
-if(e.touches) return {x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};
-return {x:e.offsetX,y:e.offsetY};
+async function makePDF(){
+ const el=document.getElementById('pdfWrapper');
+ const c=await html2canvas(el,{scale:2});
+ const img=c.toDataURL('image/png');
+ const {jsPDF}=window.jspdf;
+ const pdf=new jsPDF('p','mm','a4');
+ pdf.addImage(img,'PNG',5,5,200,0);
+ return pdf;
 }
-
-function start(e){draw=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);}
-function move(e){if(!draw)return;e.preventDefault();const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();}
-function stop(){draw=false;}
-
-canvas.addEventListener("mousedown",start);
-canvas.addEventListener("mousemove",move);
-canvas.addEventListener("mouseup",stop);
-canvas.addEventListener("touchstart",start);
-canvas.addEventListener("touchmove",move);
-canvas.addEventListener("touchend",stop);
-
-function clearSign(){ctx.clearRect(0,0,canvas.width,canvas.height);}
-
-/* PDF */
-function downloadPDF(){
-html2pdf().set({
-margin:10,
-filename:"Invoice.pdf",
-html2canvas:{scale:2},
-jsPDF:{unit:"mm",format:"a4"}
-}).from(document.getElementById("pdfWrapper")).save();
-}
-
-async function sharePDF(){
-const opt={
-margin:10,
-filename:"Invoice.pdf",
-html2canvas:{scale:2},
-jsPDF:{unit:"mm",format:"a4"}
-};
-const blob=await html2pdf().set(opt).from(pdfWrapper).outputPdf("blob");
-const file=new File([blob],"Invoice.pdf",{type:"application/pdf"});
-if(navigator.share){
-navigator.share({files:[file],title:"Invoice"});
-}else{
-alert("Download & share manually");
-}
-}
+async function downloadPDF(){const pdf=await makePDF();pdf.save('Invoice.pdf')}
+async function whatsappPDF(){const pdf=await makePDF();const b=pdf.output('blob');const f=new File([b],'Invoice.pdf',{type:'application/pdf'});if(navigator.share){navigator.share({files:[f],title:'Invoice'})}else alert('Share not supported');}
 </script>
 
 </body>
 </html>
+
