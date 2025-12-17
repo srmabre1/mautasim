@@ -166,28 +166,49 @@ c.addEventListener("touchend",()=>draw=false);
 function clearSign(){ctx.clearRect(0,0,c.width,c.height);}
 
 // Download PDF (mobile fixed)
-function downloadPDF(){
-const bill=document.getElementById("bill");
-const clone=bill.cloneNode(true);
+<script>
+function downloadPDF() {
+  const bill = document.getElementById("bill");
 
-clone.querySelectorAll("input").forEach(i=>{
-let s=document.createElement("span");
-s.innerText=i.value;
-i.replaceWith(s);
-});
+  const clone = bill.cloneNode(true);
 
-let img=document.createElement("img");
-img.src=sign.toDataURL();
-img.style.width="200px";
-clone.querySelector("canvas")?.replaceWith(img);
+  // Replace inputs with text
+  clone.querySelectorAll("input").forEach(i => {
+    const span = document.createElement("span");
+    span.innerText = i.value || "";
+    i.replaceWith(span);
+  });
 
-html2pdf().set({
-margin:10,
-filename:"Invoice.pdf",
-html2canvas:{scale:3,windowWidth:1200},
-jsPDF:{unit:"mm",format:"a4"}
-}).from(clone).save();
+  // Replace signature canvas with image
+  const canvas = document.getElementById("sign");
+  if (canvas) {
+    const img = document.createElement("img");
+    img.src = canvas.toDataURL("image/png");
+    img.style.width = "200px";
+    const target = clone.querySelector("canvas");
+    if (target) target.replaceWith(img);
+  }
+
+  const opt = {
+    margin: 5,
+    filename: "Invoice.pdf",
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      windowWidth: 1200
+    },
+    jsPDF: {
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait"
+    }
+  };
+
+  html2pdf().set(opt).from(clone).save();
 }
+
 </script>
 
 </body>
