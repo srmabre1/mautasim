@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>by mautasim</title>
+
+<!-- PDF LIB -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0;padding:10px}
+#bill{background:#fff;max-width:800px;margin:auto;padding:15px;border:2px solid #000}
+.header{text-align:center}
+.header img{max-width:120px}
+.box{border:1px solid #000;padding:8px;margin-top:8px}
+.flex{display:flex;gap:10px;flex-wrap:wrap}
+input{width:100%;padding:6px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #000;padding:6px;text-align:center}
+button{padding:8px;width:100%;margin-top:8px}
+.footer{text-align:center;margin-top:15px;font-size:12px}
+canvas{border:1px solid #000;width:100%;height:150px}
+@media print{body{background:#fff}}
+</style>
+
+</head>
+<body>
+
+<div id="bill">
+  <div class="header">
+    <img src="logo.png" alt="Logo">
+    <h2>NAVEED TEXTILES</h2>
+  </div>
+
+  <div class="box">
+    Email: naveedtextiles14@gmail.com<br>
+    Phone: 9906403030 / 9906851124
+  </div>
+
+  <div class="box flex">
+    <div>
+      Bill No
+      <input id="invoiceNo" readonly>
+    </div>
+    <div>
+      Date
+      <input id="billDate" readonly>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
+    </thead>
+    <tbody id="items">
+      <tr>
+        <td>1</td>
+        <td><input></td>
+        <td><input type="number" oninput="calc()"></td>
+        <td><input type="number" oninput="calc()"></td>
+        <td class="amt">0</td>
+      </tr>
+    </tbody>
+  </table>
+
+<button onclick="addRow()">Add Item</button>
+
+  <div class="box flex">
+    <div>Discount %<input id="disc" type="number" value="0" oninput="calc()"></div>
+    <div>Paid ₹<input id="paid" type="number" value="0" oninput="calc()"></div>
+  </div>
+
+  <h3 id="total">Total: ₹0</h3>
+  <h3 id="balance">Balance: ₹0</h3>
+
+  <div class="box">
+    Authorized Signature
+    <canvas id="sign"></canvas>
+    <button onclick="clearSign()">Clear Signature</button>
+  </div>
+
+  <div class="footer">Web built by Mautasim</div>
+</div>
+
+<button onclick="downloadPDF()">Download PDF</button> <button onclick="whatsappPDF()">WhatsApp PDF</button>
+
+<script>
+// invoice & date
+let inv=localStorage.getItem('inv')||1000;
+inv++;localStorage.setItem('inv',inv);
+invoiceNo.value='INV-'+inv;
+billDate.value=new Date().toISOString().split('T')[0];
+
+function addRow(){
+  const t=document.getElementById('items');
+  const r=t.insertRow();
+  r.innerHTML=`<td>${t.rows.length}</td><td><input></td><td><input type=number oninput=calc()></td><td><input type=number oninput=calc()></td><td class=amt>0</td>`;
+}
+
+function calc(){
+  let sum=0;
+  document.querySelectorAll('#items tr').forEach(r=>{
+    const q=r.cells[2].children[0]?.value||0;
+    const p=r.cells[3].children[0]?.value||0;
+    const a=q*p;
+    r.querySelector('.amt').innerText=a;
+    sum+=a;
+  });
+  let d=sum*(disc.value/100);
+  let total=sum-d;
+  totalEl=total;
+  totalText=`Total: ₹${total}`;
+  document.getElementById('total').innerText=totalText;
+  document.getElementById('balance').innerText=`Balance: ₹${total-(paid.value||0)}`;
+}
+
+// signature
+const c=document.getElementById('sign');
+const ctx=c.getContext('2d');
+let draw=false;
+c.onmousedown=()=>draw=true;c.onmouseup=()=>draw=false;
+c.onmousemove=e=>{if(draw){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();}};
+function clearSign(){ctx.clearRect(0,0,c.width,c.height)}
+
+function downloadPDF(){
+  const element=document.getElementById('bill');
+  html2pdf().set({
+    filename:'Invoice.pdf',
+    html2canvas:{scale:2},
+    jsPDF:{unit:'mm',format:'a4'}
+  }).from(element).save();
+}
+
+function whatsappPDF(){
+  alert('PDF will download. Share it manually on WhatsApp.');
+}
+</script>
+
+</body>
+</html>
