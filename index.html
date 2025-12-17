@@ -54,7 +54,8 @@ button{padding:10px;margin-top:10px;width:100%}
 </div>
 <div>
 <b>bill no. </b>
-<input placeholder="Invoice No">
+<input id="invoiceNo" readonly>
+
 <input type="date">
 </div>
 </div>
@@ -138,5 +139,18 @@ clone.querySelector('canvas').replaceWith(signImg);
 html2pdf().set({margin:5,filename:'Invoice.pdf',html2canvas:{scale:2},jsPDF:{format:'a4'}}).from(clone).save();
 }
 </script>
+  <script>
+  let lastInvoice = localStorage.getItem("lastInvoiceNo");
+
+  if (!lastInvoice) {
+    lastInvoice = 1000;   // starting bill number
+  } else {
+    lastInvoice = parseInt(lastInvoice) + 1;
+  }
+
+  localStorage.setItem("lastInvoiceNo", lastInvoice);
+  document.getElementById("invoiceNo").value = "INV-" + lastInvoice;
+</script>
+
 </body>
 </html>
