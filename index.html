@@ -139,17 +139,43 @@ document.getElementById('logoPreview').src=URL.createObjectURL(e.target.files[0]
 }
 
 function downloadPDF(){
-const bill=document.getElementById('bill');
-const clone=bill.cloneNode(true);
-clone.querySelectorAll('input').forEach(i=>{
-let s=document.createElement('span');s.innerText=i.value;i.replaceWith(s);
-});
-let signImg=document.createElement('img');
-signImg.src=c.toDataURL();
-signImg.style.maxWidth='200px';
-clone.querySelector('canvas').replaceWith(signImg);
-html2pdf().set({margin:5,filename:'Invoice.pdf',html2canvas:{scale:2},jsPDF:{format:'a4'}}).from(clone).save();
+  const bill = document.getElementById("bill");
+  const clone = bill.cloneNode(true);
+
+  // convert all inputs to text
+  clone.querySelectorAll("input").forEach(input=>{
+    const span = document.createElement("span");
+    span.innerText = input.value || " ";
+    input.replaceWith(span);
+  });
+
+  // convert signature canvas to image
+  const canvas = document.getElementById("sign");
+  const img = document.createElement("img");
+  img.src = canvas.toDataURL("image/png");
+  img.style.width = "200px";
+  clone.querySelector("canvas")?.replaceWith(img);
+
+  // logo fix
+  const logo = document.getElementById("logoPreview");
+  if(logo && logo.src){
+    const logoImg = document.createElement("img");
+    logoImg.src = logo.src;
+    logoImg.style.maxHeight = "80px";
+    clone.querySelector("#logoPreview")?.replaceWith(logoImg);
+  }
+
+  const opt = {
+    margin: 5,
+    filename: "Invoice.pdf",
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(clone).save();
 }
+
 </script>
   <script>
   let lastInvoice = localStorage.getItem("lastInvoiceNo");
