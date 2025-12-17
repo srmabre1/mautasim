@@ -56,7 +56,11 @@ button{padding:10px;margin-top:10px;width:100%}
 <b>bill no. </b>
 <input id="invoiceNo" readonly>
 
-<input type="date">
+<div class="date-box">
+  <span>📅</span>
+  <input type="date" id="billDate">
+</div>
+
 </div>
 </div>
 
@@ -150,6 +154,9 @@ html2pdf().set({margin:5,filename:'Invoice.pdf',html2canvas:{scale:2},jsPDF:{for
 
   localStorage.setItem("lastInvoiceNo", lastInvoice);
   document.getElementById("invoiceNo").value = "INV-" + lastInvoice;
+</script>
+<script>
+  document.getElementById("billDate").valueAsDate = new Date();
 </script>
 
 </body>
