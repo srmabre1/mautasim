@@ -3,54 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <title>by mautasim</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"tcontent="width=device-width, initial-scale=1">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
 body{font-family:Arial;background:#f2f2f2;padding:10px}
-#bill{background:#fff;border:2px solid #000;max-width:900px;margin:auto;padding:15px}
+#bill{background:#fff;border:2px solid #000;max-width:850px;margin:auto;padding:15px}
 .center{text-align:center}
-.flex{display:flex;gap:10px}
 .box{border:1px solid #000;padding:8px;margin-top:8px}
-input{width:100%;padding:4px}
+.flex{display:flex;gap:10px}
+.flex>div{width:50%}
+input{width:100%;padding:4px;margin:2px 0;box-sizing:border-box}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{border:1px solid #000;padding:6px;text-align:center}
 .right{text-align:right}
-canvas{border:1px solid #000;touch-action:none}
 button{padding:10px;margin-top:10px;width:100%}
-.logo{
-  max-height:100px;
-  max-width:200px;
-  width:auto;
-  height:auto;
-  display:block;
-  margin:0 auto 5px auto;
-  @media print {
-  body {
-    zoom: 1 !important;
-  }
-  #bill {
-    width: 210mm !important;
-  }
+canvas{border:1px solid #000;touch-action:none}
+.logo{max-height:80px}
+.footer{margin-top:10px;border-top:1px solid #000;padding-top:5px}
+.date-box{display:flex;align-items:center;gap:6px}
+
+@media print {
+  #bill{width:210mm}
 }
-
-
 </style>
 </head>
+
 <body>
 
 <div id="bill">
 
 <div class="center">
-<img src="logo.png" class="logo" alt="Shop Logo"><br>
-
+<img id="logoPreview" class="logo" src="logo.png"><br>
 <h2>Naveed Textiles</h2>
 </div>
 
 <div class="box">
-<b>Shop Name</b><input value="NAVEED TEXTILES">
-<b>Address</b><input value="Takiya Khurhama">
-<b>Phone</b><input value="9906403030 / 9906851124">
-<b>Email</b><input value="naveedtextiles14@gmail.com">
+<b>Shop Name</b>
+<input value="NAVEED TEXTILES">
+<b>Address</b>
+<input value="Takiya Khurhama">
+<b>Phone</b>
+<input value="9906403030 / 9906851124">
+<b>Email</b>
+<input value="naveedtextiles14@gmail.com">
 </div>
 
 <div class="box flex">
@@ -61,19 +58,20 @@ button{padding:10px;margin-top:10px;width:100%}
 <input placeholder="Customer Phone">
 </div>
 <div>
-<b>bill no. </b>
+<b>Bill No</b>
 <input id="invoiceNo" readonly>
-
+<b>Date</b>
 <div class="date-box">
 <span>📅</span>
 <input type="date" id="billDate">
 </div>
-
 </div>
 </div>
 
 <table id="items">
-<tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
+<tr>
+<th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th>
+</tr>
 <tr>
 <td>1</td>
 <td><input></td>
@@ -89,139 +87,107 @@ button{padding:10px;margin-top:10px;width:100%}
 Discount % <input id="disc" value="0" oninput="calc()"><br>
 GST % <input id="gst" value="0" oninput="calc()"><br>
 <h3 id="total">Total: ₹0</h3>
-  <label>Paid Amount ₹</label>
-<input type="number" id="paid" value="0" oninput="calcBalance()">
 
+Paid Amount
+<input id="paid" type="number" value="0" oninput="calcBalance()">
 <h3 id="balance">Balance: ₹0</h3>
-
 </div>
 
 <div class="box">
 <b>Authorized Signature</b><br>
-<canvas id="sign" width="300" height="120"></canvas><br>
-<button onclick=""clearSign(">Clear Signature</button>
+<canvas id="sign" width="300" height="120"></canvas>
+<button onclick="clearSign()">Clear Signature</button>
 </div>
 
-<div class="center box">Web built by Mautasim</div>
-
+<div class="center footer">
+Web built by Mautasim
 </div>
 
-
+</div>
 
 <button onclick="downloadPDF()">Download PDF</button>
 
 <script>
+// Auto invoice number
+let last = localStorage.getItem("lastInvoice") || 1000;
+last++;
+localStorage.setItem("lastInvoice", last);
+document.getElementById("invoiceNo").value = "INV-" + last;
+
+// Today date
+document.getElementById("billDate").value =
+new Date().toISOString().split("T")[0];
+
+// Add row
 function addRow(){
-let t=document.getElementById('items');
+let t=document.getElementById("items");
 let r=t.insertRow();
-r.innerHTML=`<td>${t.rows.length-1}</td><td><input></td><td><input type=number oninput=calc()></td><td><input type=number oninput=calc()></td><td class=amt>0</td>`;
+r.innerHTML=`<td>${t.rows.length-1}</td>
+<td><input></td>
+<td><input type=number oninput=calc()></td>
+<td><input type=number oninput=calc()></td>
+<td class=amt>0</td>`;
 }
 
+// Calculate total
 function calc(){
 let sum=0;
-document.querySelectorAll('#items tr').forEach((r,i)=>{
+document.querySelectorAll("#items tr").forEach((r,i)=>{
 if(i>0){
 let q=r.cells[2].firstChild.value||0;
 let p=r.cells[3].firstChild.value||0;
-let a=q*p;r.cells[4].innerText=a;sum+=a;
-  
-
+let a=q*p;
+r.cells[4].innerText=a;
+sum+=a;
 }
 });
 let d=sum*(disc.value/100);
 let g=sum*(gst.value/100);
-document.getElementById('total').innerText='Total: ₹'+(sum-d+g);
-  calcBalance();
+document.getElementById("total").innerText="Total: ₹"+(sum-d+g);
+calcBalance();
 }
 
-let c=document.getElementById('sign'),ctx=c.getContext('2d'),draw=false;
-c.onmousedown=()=>draw=true;c.onmouseup=()=>draw=false;
-c.onmousemove=e=>{if(draw){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();}};
-c.addEventListener('touchstart',e=>{draw=true;let t=e.touches[0];ctx.moveTo(t.clientX-c.offsetLeft,t.clientY-c.offsetTop)});
-c.addEventListener('touchmove',e=>{if(draw){let t=e.touches[0];ctx.lineTo(t.clientX-c.offsetLeft,t.clientY-c.offsetTop);ctx.stroke();}});
-c.addEventListener('touchend',()=>draw=false);
-function clearSign(){ctx.clearRect(0,0,c.width,c.height)}
-
-function loadLogo(e){
-document.getElementById('logoPreview').src=URL.createObjectURL(e.target.files[0]);
+// Balance
+function calcBalance(){
+let t=parseFloat(total.innerText.replace(/[^0-9.]/g,''))||0;
+let p=parseFloat(paid.value)||0;
+document.getElementById("balance").innerText="Balance: ₹"+(t-p);
 }
 
+// Signature
+let c=sign,ctx=c.getContext("2d"),draw=false;
+c.onmousedown=()=>draw=true;
+c.onmouseup=()=>{draw=false;ctx.beginPath();}
+c.onmousemove=e=>{if(draw){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();}}
+c.addEventListener("touchstart",e=>{draw=true;let t=e.touches[0];ctx.moveTo(t.clientX-c.offsetLeft,t.clientY-c.offsetTop)})
+c.addEventListener("touchmove",e=>{if(draw){let t=e.touches[0];ctx.lineTo(t.clientX-c.offsetLeft,t.clientY-c.offsetTop);ctx.stroke()}})
+c.addEventListener("touchend",()=>draw=false);
+
+function clearSign(){ctx.clearRect(0,0,c.width,c.height);}
+
+// Download PDF (mobile fixed)
 function downloadPDF(){
-  const bill = document.getElementById("bill");
-  const clone = bill.cloneNode(true);
+const bill=document.getElementById("bill");
+const clone=bill.cloneNode(true);
 
-  // Replace inputs with text
-  clone.querySelectorAll("input").forEach(input=>{
-    const span = document.createElement("span");
-    span.innerText = input.value || " ";
-    input.replaceWith(span);
-  });
+clone.querySelectorAll("input").forEach(i=>{
+let s=document.createElement("span");
+s.innerText=i.value;
+i.replaceWith(s);
+});
 
-  // Replace signature canvas
-  const canvas = document.getElementById("sign");
-  if(canvas){
-    const img = document.createElement("img");
-    img.src = canvas.toDataURL("image/png");
-    img.style.width = "200px";
-    clone.querySelector("canvas")?.replaceWith(img);
-  }
+let img=document.createElement("img");
+img.src=sign.toDataURL();
+img.style.width="200px";
+clone.querySelector("canvas")?.replaceWith(img);
 
-  // Replace logo
-  const logo = document.getElementById("logoPreview");
-  if(logo && logo.src){
-    const img = document.createElement("img");
-    img.src = logo.src;
-    img.style.maxHeight = "80px";
-    clone.querySelector("#logoPreview")?.replaceWith(img);
-  }
-
-  html2pdf().set({
-    margin: [10, 10, 10, 10],
-    filename: "Invoice.pdf",
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
-      scale: 3,          // 🔥 KEY FIX
-      useCORS: true,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: 1200  // 🔥 FORCE DESKTOP WIDTH
-    },
-    jsPDF: {
-      unit: "mm",
-      format: "a4",
-      orientation: "portrait"
-    }
-  }).from(clone).save();
+html2pdf().set({
+margin:10,
+filename:"Invoice.pdf",
+html2canvas:{scale:3,windowWidth:1200},
+jsPDF:{unit:"mm",format:"a4"}
+}).from(clone).save();
 }
-
-
-</script>
-  <script>
-  let lastInvoice = localStorage.getItem("lastInvoiceNo");
-
-  if (!lastInvoice) {
-    lastInvoice = 25000;   // starting bill number
-  } else {
-    lastInvoice = parseInt(lastInvoice) + 1;
-  }
-
-  localStorage.setItem("lastInvoiceNo", lastInvoice);
-  document.getElementById("invoiceNo").value = "INV-" + lastInvoice;
-</script>
-<script>
-  document.getElementById("billDate").value =
-  new Date().toISOString().split('T')[0];
-
-  function calcBalance(){
-  const totalText = document.getElementById("total").innerText;
-  const total = parseFloat(totalText.replace(/[^0-9.]/g, "")) || 0;
-  const paid = parseFloat(document.getElementById("paid").value) || 0;
-  const balance = total - paid;
-
-  document.getElementById("balance").innerText =
-    "Balance: ₹" + (balance >= 0 ? balance : 0);
-}
-
 </script>
 
 </body>
