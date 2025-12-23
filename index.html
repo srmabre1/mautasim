@@ -43,7 +43,36 @@ canvas{border:1px solid #000;width:100%;height:150px;touch-action:none}
   button { display: none !important; } /* Hides buttons on the PDF */
   input { border: none !important; }  /* Removes input boxes for a cleaner look */
 }
+/* Add this inside your <style> tags */
 
+#pdfWrapper {
+    overflow-x: hidden; 
+}
+
+/* This stacks "Name", "Phone", and "Address" on top of each other on mobile */
+.box.flex {
+    flex-direction: column; 
+}
+
+@media (min-width: 600px) {
+    .box.flex {
+        flex-direction: row; 
+    }
+}
+
+/* This allows you to swipe the table left and right if it's too wide */
+table {
+    display: block;
+    overflow-x: auto; 
+    white-space: nowrap;
+}
+
+/* Keeps the signature box from being wider than your phone */
+canvas {
+    max-width: 100%; 
+    height: auto;
+    aspect-ratio: 4 / 2;
+}
 </style>
 </head>
 
@@ -273,13 +302,29 @@ function clearSign() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 // --- 5. PDF Generation ---
 async function makePDF() {
     const el = document.getElementById('pdfWrapper');
-    const c = await html2canvas(el, { scale: 2, useCORS: true });
+    
+    // Forces the capture to see the full length of the bill
+    const c = await html2canvas(el, {
+        scale: 2, 
+        useCORS: true,
+        scrollY: -window.scrollY, 
+        windowWidth: 794, // Standard desktop width for perfect PDF layout
+        onclone: (clonedDoc) => {
+            clonedDoc.getElementById('pdfWrapper').style.height = 'auto';
+        }
+    });
+
     const img = c.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
-    pdf.addImage(img, 'PNG', 0, 0, 210, (c.height * 210) / c.width);
+    
+    const pdfWidth = 210;
+    const pdfHeight = (c.height * pdfWidth) / c.width;
+    
+    pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
     return pdf;
 }
+
 
 async function downloadPDF() { 
     saveBill(); 
