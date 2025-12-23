@@ -20,8 +20,19 @@ body{font-family:Arial, sans-serif;background:#f2f2f2;margin:0;padding:10px}
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-.header{text-align:center}
-.header img{max-width:120px; border-radius: 50%;}
+/* HIGHLIGHTED TITLE STYLE */
+.header{text-align:center; padding-bottom: 10px;}
+.header img{max-width:110px; border-radius: 50%; margin-bottom: 10px;}
+.header h1 {
+    background: #2196F3; 
+    color: white; 
+    padding: 10px; 
+    border-radius: 5px; 
+    margin: 0; 
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
 .box{border:1px solid #000;padding:10px;margin-top:10px}
 
 /* Mobile Responsive Flex */
@@ -31,7 +42,7 @@ body{font-family:Arial, sans-serif;background:#f2f2f2;margin:0;padding:10px}
 
 input{width:100%;padding:8px;box-sizing:border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;}
 
-/* Scrollable table for small screens */
+/* Scrollable table */
 .table-container { width: 100%; overflow-x: auto; margin-top: 10px; }
 table{width:100%;border-collapse:collapse; min-width: 500px;}
 th,td{border:1px solid #000;padding:8px;text-align:center}
@@ -41,14 +52,22 @@ button{padding:12px;margin-top:10px;width:100%; cursor: pointer; border: none; b
 .btn-download { background: #4CAF50; color: white; }
 .btn-whatsapp { background: #25D366; color: white; }
 .btn-new { background: #2196F3; color: white; }
-button:active { opacity: 0.8; }
 
 canvas{border:1px solid #000; width:100%; height: 160px; touch-action:none; background: #fafafa; margin-top: 5px;}
-.footer{text-align:center;margin-top:20px;font-size:12px; color: #666;}
 
-/* Utility classes */
+/* HIGHLIGHTED CREDIT STYLE */
+.credit-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-top: 1px dashed #ccc;
+    font-size: 14px;
+    color: #333;
+}
+.credit-footer strong { color: #2196F3; }
+
 .no-print { display: block; }
-
 @media print {
   .no-print { display: none !important; }
   body { background: white; padding: 0; }
@@ -62,7 +81,7 @@ canvas{border:1px solid #000; width:100%; height: 160px; touch-action:none; back
 <div id="pdfWrapper">
     <div class="header">
       <img src="logo.png" alt="Naveed Textiles Logo">
-      <h1 style="margin: 10px 0;">NAVEED TEXTILES</h1>
+      <h1>NAVEED TEXTILES</h1>
     </div>
 
     <div class="box">
@@ -74,7 +93,6 @@ canvas{border:1px solid #000; width:100%; height: 160px; touch-action:none; back
       <div>Customer Name<input id="custName" placeholder="Enter name"></div>
       <div>Phone<input id="custPhone" placeholder="Enter phone"></div>
       <div>Address<input id="custaddress" placeholder="Enter address"></div>
-      <div class="footer"<h3>>Web built by Mautasim</h3></div>
     </div>
 
     <div class="box flex">
@@ -124,7 +142,9 @@ canvas{border:1px solid #000; width:100%; height: 160px; touch-action:none; back
       <button class="no-print" style="background:#f1f1f1; color:#333; font-size: 12px; padding: 5px; width: auto; margin-top: 5px;" onclick="clearSign()">Clear Signature</button>
     </div>
 
-    
+    <div class="credit-footer">
+        Web built by <strong>Mautasim</strong>
+    </div>
 </div>
 
 <div style="max-width: 794px; margin: 15px auto; display: flex; gap: 10px; flex-wrap: wrap;" class="no-print">
@@ -141,11 +161,7 @@ canvas{border:1px solid #000; width:100%; height: 160px; touch-action:none; back
         <table id="historyTable" style="min-width: 100%;">
             <thead>
                 <tr style="background: #eee;">
-                    <th>Bill No</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Total Amount</th>
-                    <th>Actions</th>
+                    <th>Bill No</th><th>Date</th><th>Customer</th><th>Total</th><th>Actions</th>
                 </tr>
             </thead>
             <tbody id="historyBody"></tbody>
@@ -200,28 +216,16 @@ function saveBill() {
     });
 
     const billData = {
-        id: billId, 
-        date: document.getElementById('billDate').value,
-        name: document.getElementById('custName').value, 
-        phone: document.getElementById('custPhone').value,
-        address: document.getElementById('custaddress').value, 
-        items: items,
-        disc: document.getElementById('disc').value, 
-        gst: document.getElementById('gst').value,
-        paid: document.getElementById('paid').value, 
-        total: document.getElementById('total').innerText
+        id: billId, date: document.getElementById('billDate').value,
+        name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value,
+        address: document.getElementById('custaddress').value, items: items,
+        disc: document.getElementById('disc').value, gst: document.getElementById('gst').value,
+        paid: document.getElementById('paid').value, total: document.getElementById('total').innerText
     };
 
     let history = JSON.parse(localStorage.getItem('billHistory') || '[]');
     const idx = history.findIndex(b => b.id === billId);
-    if (idx > -1) { 
-        history[idx] = billData; 
-    } else { 
-        history.push(billData); 
-        inv++; 
-        localStorage.setItem('inv', inv); 
-    }
-    
+    if (idx > -1) { history[idx] = billData; } else { history.push(billData); inv++; localStorage.setItem('inv', inv); }
     localStorage.setItem('billHistory', JSON.stringify(history));
     loadHistory();
 }
@@ -232,14 +236,10 @@ function loadHistory() {
     body.innerHTML = '';
     history.slice().reverse().forEach(bill => {
         const row = body.insertRow();
-        row.innerHTML = `
-            <td>${bill.id}</td>
-            <td>${bill.date}</td>
-            <td>${bill.name || 'N/A'}</td>
-            <td>${bill.total}</td>
+        row.innerHTML = `<td>${bill.id}</td><td>${bill.date}</td><td>${bill.name || 'N/A'}</td><td>${bill.total}</td>
             <td>
-                <button onclick="editBill('${bill.id}')" style="background:orange; color:white; padding:5px 10px; width:auto; margin:2px;">Edit</button>
-                <button onclick="deleteBill('${bill.id}')" style="background:red; color:white; padding:5px 10px; width:auto; margin:2px;">Del</button>
+                <button onclick="editBill('${bill.id}')" style="background:orange; color:white; padding:5px; width:auto;">Edit</button>
+                <button onclick="deleteBill('${bill.id}')" style="background:red; color:white; padding:5px; width:auto;">Del</button>
             </td>`;
     });
 }
@@ -249,7 +249,6 @@ function editBill(id) {
     const b = history.find(x => x.id === id);
     if (!b) return;
     document.getElementById('invoiceNo').value = b.id;
-    document.getElementById('billDate').value = b.date;
     document.getElementById('custName').value = b.name;
     document.getElementById('custPhone').value = b.phone;
     document.getElementById('custaddress').value = b.address;
@@ -263,7 +262,7 @@ function editBill(id) {
 }
 
 function deleteBill(id) {
-    if(confirm("Are you sure you want to delete this invoice?")) {
+    if(confirm("Delete this invoice?")) {
         let history = JSON.parse(localStorage.getItem('billHistory') || '[]');
         localStorage.setItem('billHistory', JSON.stringify(history.filter(x => x.id !== id)));
         loadHistory();
@@ -279,7 +278,7 @@ function filterHistory() {
 }
 
 function resetForm() {
-    if(!confirm("Clear all fields and start a new bill?")) return;
+    if(!confirm("Start a new bill?")) return;
     inv = parseInt(localStorage.getItem('inv')) || 1000;
     document.getElementById('invoiceNo').value = 'INV-' + (inv + 1);
     document.getElementById('custName').value = '';
@@ -290,11 +289,9 @@ function resetForm() {
     document.getElementById('disc').value = 0;
     document.getElementById('gst').value = 0;
     document.getElementById('paid').value = 0;
-    clearSign(); 
-    calc();
+    clearSign(); calc();
 }
 
-// Signature Canvas Logic
 const canvas = document.getElementById('sign');
 const ctx = canvas.getContext('2d');
 let drawing = false;
@@ -304,7 +301,6 @@ function initCanvas() {
     canvas.height = canvas.offsetHeight; 
     ctx.lineWidth = 2; 
     ctx.lineCap = 'round'; 
-    ctx.strokeStyle = '#000';
 }
 
 const getPos = (e) => {
@@ -317,78 +313,38 @@ const getPos = (e) => {
 canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
 canvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
 window.addEventListener('mouseup', () => drawing = false);
-
-canvas.addEventListener('touchstart', (e) => { 
-    e.preventDefault(); 
-    drawing = true; 
-    ctx.beginPath(); 
-    const p = getPos(e); 
-    ctx.moveTo(p.x, p.y); 
-}, {passive:false});
-
-canvas.addEventListener('touchmove', (e) => { 
-    e.preventDefault(); 
-    if(!drawing) return; 
-    const p = getPos(e); 
-    ctx.lineTo(p.x, p.y); 
-    ctx.stroke(); 
-}, {passive:false});
-
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }, {passive:false});
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, {passive:false});
 function clearSign() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-// PDF GENERATION LOGIC - FIXED FOR FULL CAPTURE
 async function makePDF() {
     const el = document.getElementById('pdfWrapper');
-    
-    // Step 1: Force full height capture
     const c = await html2canvas(el, {
-        scale: 2,           // Improve quality
-        useCORS: true,      // Allow logo images
+        scale: 2,
+        useCORS: true,
         scrollY: -window.scrollY, 
-        windowWidth: 794,   // Capture at standard desktop width
-        height: el.offsetHeight, // Capture actual height of the container
-        onclone: (clonedDoc) => {
-            // Ensure inputs look clean in the capture
-            const clonedWrapper = clonedDoc.getElementById('pdfWrapper');
-            clonedWrapper.style.boxShadow = 'none';
-            clonedWrapper.style.border = 'none';
-        }
+        windowWidth: 794,
+        height: el.offsetHeight
     });
-
     const imgData = c.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
-    
-    // Calculate sizing to fit A4
-    const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
+    const pdfHeight = (c.height * pdfWidth) / c.width;
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     return pdf;
 }
 
-async function downloadPDF() { 
-    saveBill(); 
-    const pdf = await makePDF(); 
-    pdf.save(document.getElementById('invoiceNo').value + '.pdf'); 
-}
-
+async function downloadPDF() { saveBill(); const pdf = await makePDF(); pdf.save(document.getElementById('invoiceNo').value + '.pdf'); }
 async function whatsappPDF() {
-    saveBill(); 
-    const pdf = await makePDF();
+    saveBill(); const pdf = await makePDF();
     const blob = pdf.output('blob');
     const file = new File([blob], 'Invoice.pdf', { type: 'application/pdf' });
-    
-    if (navigator.share) { 
-        navigator.share({ files: [file], title: 'Invoice from Naveed Textiles' }); 
-    } else { 
-        alert("Web Share is not supported on this browser. Try Chrome on Android."); 
-    }
+    if (navigator.share) { navigator.share({ files: [file], title: 'Invoice' }); } 
+    else { alert("Please use Chrome or Safari for sharing."); }
 }
 
 window.onload = init;
-// Handle window resize for canvas
 window.onresize = initCanvas;
 </script>
 </body>
