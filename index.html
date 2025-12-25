@@ -3,239 +3,228 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Naveed Textiles - Powered by Mautasim</title>
+<title>Naveed Textiles - Mautasim Edition</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body{font-family:Arial, sans-serif;background:#f2f2f2;margin:0;padding:10px}
-#pdfWrapper{
-  width: 100%; max-width: 794px; margin: auto; background: white; padding: 15px; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 10px; }
+    #pdfWrapper { width: 100%; max-width: 700px; margin: auto; background: white; padding: 20px; border: 1px solid #ccc; }
+    
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { background: #2196F3; color: white; padding: 15px; margin: 0; border-radius: 5px; }
+    
+    .box { border: 1px solid #000; padding: 10px; margin-top: 10px; }
+    .flex { display: flex; gap: 10px; flex-wrap: wrap; }
+    .flex > div { flex: 1; min-width: 150px; }
+    
+    input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; margin-top: 5px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+    th { background: #eee; }
 
-.header{text-align:center}
-.header img{max-width:110px; border-radius: 50%;}
-.header h1 { background: #2196F3; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; }
+    canvas { border: 1px solid #000; width: 100%; height: 150px; background: #fafafa; touch-action: none; cursor: crosshair; }
+    
+    .no-print { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; max-width: 700px; margin-left: auto; margin-right: auto; }
+    button { padding: 12px; flex: 1; cursor: pointer; font-weight: bold; border-radius: 5px; border: none; }
+    .btn-add { background: #607d8b; color: white; width: 100%; margin-top: 10px; }
+    .btn-pdf { background: #4CAF50; color: white; }
+    .btn-wa { background: #25D366; color: white; }
+    .btn-reset { background: #2196F3; color: white; }
 
-.box{border:1px solid #000;padding:10px;margin-top:10px}
-.flex{display:flex;gap:10px;flex-wrap:wrap; flex-direction: column;}
-@media (min-width: 600px) { .flex { flex-direction: row; } }
-.flex > div{flex:1}
+    .builder-tag { text-align: center; margin-top: 30px; font-size: 12px; color: #888; border-top: 1px dashed #ccc; padding-top: 10px; cursor: pointer; user-select: none; }
 
-input{width:100%;padding:8px;box-sizing:border-box; border: 1px solid #ccc; border-radius: 4px;}
-.table-container { width: 100%; overflow-x: auto; margin-top: 10px; }
-table{width:100%;border-collapse:collapse; min-width: 500px;}
-th,td{border:1px solid #000;padding:8px;text-align:center}
-
-button{padding:12px;margin-top:10px;width:100%; cursor: pointer; border: none; border-radius: 4px; font-weight: bold;}
-.btn-add { background: #607d8b; color: white; }
-.btn-download { background: #4CAF50; color: white; }
-.btn-whatsapp { background: #25D366; color: white; }
-.btn-new { background: #2196F3; color: white; }
-
-canvas{border:1px solid #000; width:100%; height: 160px; touch-action:none; background: #fafafa; margin-top: 5px;}
-
-/* BUILDER TAG */
-.builder-tag { text-align: center; margin-top: 20px; padding: 10px; background: #f9f9f9; border-top: 1px dashed #ccc; font-size: 14px; }
-.builder-tag strong { color: #2196F3; }
-
-.no-print { display: block; }
-@media print { .no-print { display: none !important; } }
+    #history { max-width: 700px; margin: 20px auto; background: white; padding: 15px; border: 1px solid #ccc; }
 </style>
 </head>
-
 <body>
 
 <div id="pdfWrapper">
     <div class="header">
-      <img src="logo.png" alt="Logo">
-      <h1>NAVEED TEXTILES</h1>
+        <h1>NAVEED TEXTILES</h1>
+        <p>Email: naveedtextiles14@gmail.com | Ph: 9906403030</p>
+    </div>
+
+    <div class="box flex">
+        <div>Name: <input id="custName"></div>
+        <div>Phone: <input id="custPhone"></div>
+    </div>
+
+    <div class="box flex">
+        <div>Bill No: <input id="invNo" readonly></div>
+        <div>Date: <input id="billDate" type="date"></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+        </thead>
+        <tbody id="itemsBody">
+            <tr>
+                <td>1</td>
+                <td><input placeholder="Item"></td>
+                <td><input type="number" value="1" oninput="calc()"></td>
+                <td><input type="number" value="0" oninput="calc()"></td>
+                <td class="rowTotal">0.00</td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="btn-add no-print" onclick="addRow()">+ Add Item</button>
+
+    <div class="box" style="text-align: right;">
+        <h2 id="grandTotal">Total: ₹0.00</h2>
     </div>
 
     <div class="box">
-      <strong>Email:</strong> naveedtextiles14@gmail.com<br>
-      <strong>Phone:</strong> 9906403030 / 9906851124
+        <p style="margin:0">Signature:</p>
+        <canvas id="sigCanvas"></canvas>
+        <button class="no-print" style="width: auto; padding: 5px; font-size: 10px;" onclick="clearSig()">Clear Signature</button>
     </div>
 
-    <div class="box flex">
-      <div>Customer Name<input id="custName" placeholder="Enter name"></div>
-      <div>Phone<input id="custPhone" placeholder="Enter phone"></div>
-      <div>Address<input id="custaddress" placeholder="Enter address"></div>
-    </div>
-
-    <div class="box flex">
-      <div>Bill No<input id="invoiceNo" readonly></div>
-      <div>Date<input id="billDate" type="date"></div>
-    </div>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr style="background: #f0f0f0;">
-                    <th style="width: 40px;">#</th>
-                    <th>Item Description</th>
-                    <th style="width: 80px;">Qty</th>
-                    <th style="width: 100px;">Price</th>
-                    <th style="width: 120px;">Amount</th>
-                </tr>
-            </thead>
-            <tbody id="items">
-                <tr>
-                    <td>1</td>
-                    <td><input placeholder="Item name"></td>
-                    <td><input type="number" value="1" oninput="calc()"></td>
-                    <td><input type="number" value="0" oninput="calc()"></td>
-                    <td class="amt">0.00</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <button class="btn-add no-print" onclick="addRow()">+ Add Item Row</button>
-
-    <div class="box flex">
-      <div>Discount %<input id="disc" type="number" value="0" oninput="calc()"></div>
-      <div>GST %<input id="gst" type="number" value="0" oninput="calc()"></div>
-      <div>Paid ₹<input id="paid" type="number" value="0" oninput="calc()"></div>
-    </div>
-
-    <div class="box" style="background: #fdfdfd;">
-        <h2 id="total" style="margin: 5px 0;">Total: ₹0.00</h2>
-        <h3 id="balance" style="margin: 5px 0; color: #d32f2f;">Balance Due: ₹0.00</h3>
-    </div>
-
-    <div class="box">
-      <h3 style="margin-top: 0;">Authorized Signature</h3>
-      <canvas id="sign"></canvas>
-      <button class="no-print" style="background:#f1f1f1; color:#333; font-size: 11px; width:auto;" onclick="clearSign()">Clear Signature</button>
-    </div>
-
-    <div class="builder-tag">
-        Web built by <strong>Mautasim</strong>
+    <div class="builder-tag" id="mautasimTag">
+        Web Built by Mautasim (v3.0.0)
     </div>
 </div>
 
-<div style="max-width: 794px; margin: 15px auto; display: flex; gap: 10px; flex-wrap: wrap;" class="no-print">
-    <button class="btn-download" style="flex: 1;" onclick="processBill('download')">Download PDF</button>
-    <button class="btn-whatsapp" style="flex: 1;" onclick="processBill('whatsapp')">WhatsApp</button>
-    <button class="btn-new" style="flex: 1;" onclick="resetForm()">New Invoice</button>
+<div class="no-print">
+    <button class="btn-pdf" onclick="saveAndProcess('download')">Download PDF</button>
+    <button class="btn-wa" onclick="saveAndProcess('share')">WhatsApp</button>
+    <button class="btn-reset" onclick="window.location.reload()">New Bill</button>
 </div>
 
-<div id="historySection" class="no-print" style="max-width: 794px; margin: 20px auto; background: white; padding: 15px; border: 1px solid #ccc; border-radius: 8px;">
-    <h3>Invoice History</h3>
-    <div style="overflow-x: auto;">
-        <table id="historyTable" style="min-width: 100%;">
-            <thead><tr style="background: #eee;"><th>Bill No</th><th>Date</th><th>Customer</th><th>Total</th></tr></thead>
-            <tbody id="historyBody"></tbody>
-        </table>
-    </div>
+<div id="history">
+    <h3>Recent History</h3>
+    <div id="historyList"></div>
 </div>
 
 <script>
-let inv = parseInt(localStorage.getItem('inv')) || 1000;
-let pressTimer;
+    let inv = localStorage.getItem('invCount') ? parseInt(localStorage.getItem('invCount')) : 1000;
+    const canvas = document.getElementById('sigCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
 
-function init() {
-    document.getElementById('invoiceNo').value = 'INV-' + (inv + 1);
-    document.getElementById('billDate').value = new Date().toISOString().split('T')[0];
-    loadHistory();
-    initCanvas();
-    setupSecretAccess();
-}
-
-// --- MAUTASIM'S SECRET MASTER VIEW ---
-function setupSecretAccess() {
-    const devTag = document.querySelector('.builder-tag');
-    
-    // Desktop & Mobile Long Press
-    devTag.onmousedown = () => { pressTimer = setTimeout(showMasterLog, 3000); };
-    devTag.onmouseup = () => { clearTimeout(pressTimer); };
-    devTag.ontouchstart = () => { pressTimer = setTimeout(showMasterLog, 3000); };
-    devTag.ontouchend = () => { clearTimeout(pressTimer); };
-}
-
-function showMasterLog() {
-    const records = JSON.parse(localStorage.getItem('mautasim_master_records') || '[]');
-    if (records.length === 0) {
-        alert("Mautasim: No master records found yet.");
-        return;
-    }
-    
-    let report = "--- MAUTASIM MASTER RECORDS ---\n\n";
-    records.forEach((r, i) => {
-        report += `${i+1}. [${r.timestamp}] Bill: ${r.id} | Name: ${r.name} | ${r.total}\n`;
-    });
-    
-    alert(report);
-}
-
-// --- STANDARD BILLING LOGIC ---
-function addRow(name='', qty='1', price='0') {
-    const t = document.getElementById('items');
-    const r = t.insertRow();
-    r.innerHTML = `<td>${t.rows.length}</td><td><input value="${name}"></td><td><input type="number" value="${qty}" oninput="calc()"></td><td><input type="number" value="${price}" oninput="calc()"></td><td class="amt">0.00</td>`;
-    calc();
-}
-
-function calc() {
-    let sum = 0;
-    document.querySelectorAll('#items tr').forEach(r => {
-        let q = parseFloat(r.cells[2].querySelector('input').value) || 0;
-        let p = parseFloat(r.cells[3].querySelector('input').value) || 0;
-        let a = q * p;
-        r.querySelector('.amt').innerText = a.toFixed(2);
-        sum += a;
-    });
-    let d = sum * (parseFloat(document.getElementById('disc').value) || 0) / 100;
-    let g = (sum - d) * (parseFloat(document.getElementById('gst').value) || 0) / 100;
-    let total = sum - d + g;
-    document.getElementById('total').innerText = `Total: ₹${total.toFixed(2)}`;
-    document.getElementById('balance').innerText = 'Balance Due: ₹' + (total - (parseFloat(document.getElementById('paid').value) || 0)).toFixed(2);
-}
-
-async function processBill(action) {
-    const billData = {
-        id: document.getElementById('invoiceNo').value,
-        date: document.getElementById('billDate').value,
-        name: document.getElementById('custName').value,
-        total: document.getElementById('total').innerText
+    // Initialize
+    window.onload = () => {
+        document.getElementById('invNo').value = "NT-" + (inv + 1);
+        document.getElementById('billDate').value = new Date().toISOString().split('T')[0];
+        initCanvas();
+        updateHistoryDisplay();
+        setupMautasimSecret();
     };
 
-    // Save for User
-    let history = JSON.parse(localStorage.getItem('billHistory') || '[]');
-    history.push(billData);
-    localStorage.setItem('billHistory', JSON.stringify(history));
-
-    // RECORD FOR BUILDER (MAUTASIM)
-    let masterLog = JSON.parse(localStorage.getItem('mautasim_master_records') || '[]');
-    masterLog.push({...billData, timestamp: new Date().toLocaleString()});
-    localStorage.setItem('mautasim_master_records', JSON.stringify(masterLog));
-
-    inv++;
-    localStorage.setItem('inv', inv);
-
-    const pdf = await makePDF();
-    if(action === 'download') pdf.save(billData.id + '.pdf');
-    else {
-        const file = new File([pdf.output('blob')], 'Bill.pdf', {type:'application/pdf'});
-        if(navigator.share) navigator.share({files:[file]});
+    function initCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
     }
-    loadHistory();
-}
 
-function loadHistory() {
-    const history = JSON.parse(localStorage.getItem('billHistory') || '[]');
-    const body = document.getElementById('historyBody');
-    body.innerHTML = '';
-    history.slice().reverse().forEach(b => {
-        const r = body.insertRow();
-        r.innerHTML = `<td>${b.id}</td><td>${b.date}</td><td>${b.name || 'N/A'}</td><td>${b.total}</td>`;
-    });
-}
+    // Drawing Logic
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+    window.addEventListener('touchend', stopDraw);
 
-// (Remaining Canvas and PDF functions stay the same as before)
+    function startDraw(e) {
+        drawing = true;
+        const rect = canvas.getBoundingClientRect();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
 
+    function draw(e) {
+        if (!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+    }
+
+    function stopDraw() { drawing = false; }
+    function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+    function addRow() {
+        const body = document.getElementById('itemsBody');
+        const rowCount = body.rows.length + 1;
+        const row = body.insertRow();
+        row.innerHTML = `<td>${rowCount}</td><td><input></td><td><input type="number" value="1" oninput="calc()"></td><td><input type="number" value="0" oninput="calc()"></td><td class="rowTotal">0.00</td>`;
+    }
+
+    function calc() {
+        let grand = 0;
+        document.querySelectorAll('#itemsBody tr').forEach(tr => {
+            const q = tr.cells[2].querySelector('input').value;
+            const p = tr.cells[3].querySelector('input').value;
+            const total = q * p;
+            tr.cells[4].innerText = total.toFixed(2);
+            grand += total;
+        });
+        document.getElementById('grandTotal').innerText = "Total: ₹" + grand.toFixed(2);
+    }
+
+    async function saveAndProcess(type) {
+        const bill = {
+            id: document.getElementById('invNo').value,
+            name: document.getElementById('custName').value,
+            total: document.getElementById('grandTotal').innerText,
+            date: document.getElementById('billDate').value
+        };
+
+        // 1. User History
+        let hist = JSON.parse(localStorage.getItem('userHistory') || '[]');
+        hist.push(bill);
+        localStorage.setItem('userHistory', JSON.stringify(hist));
+
+        // 2. Mautasim Master Record (Hidden)
+        let master = JSON.parse(localStorage.getItem('mautasim_master') || '[]');
+        master.push({...bill, timestamp: new Date().toLocaleString()});
+        localStorage.setItem('mautasim_master', JSON.stringify(master));
+
+        // 3. Increment Invoice
+        inv++;
+        localStorage.setItem('invCount', inv);
+
+        // 4. Create PDF
+        const el = document.getElementById('pdfWrapper');
+        const sc = await html2canvas(el, { scale: 2 });
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        pdf.addImage(sc.toDataURL('image/png'), 'PNG', 0, 0, 210, (sc.height * 210) / sc.width);
+
+        if (type === 'download') {
+            pdf.save(bill.id + ".pdf");
+        } else {
+            const file = new File([pdf.output('blob')], 'Bill.pdf', {type:'application/pdf'});
+            if(navigator.share) navigator.share({files:[file]});
+        }
+        updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+        const hist = JSON.parse(localStorage.getItem('userHistory') || '[]');
+        const div = document.getElementById('historyList');
+        div.innerHTML = hist.slice(-5).reverse().map(b => 
+            `<p style="border-bottom:1px solid #eee; margin:5px 0; font-size:13px;">${b.id} | ${b.name} | ${b.total}</p>`
+        ).join('');
+    }
+
+    // SECRET BUILDER ACCESS
+    function setupMautasimSecret() {
+        let timer;
+        const tag = document.getElementById('mautasimTag');
+        tag.addEventListener('mousedown', () => timer = setTimeout(showMaster, 3000));
+        tag.addEventListener('mouseup', () => clearTimeout(timer));
+        tag.addEventListener('touchstart', () => timer = setTimeout(showMaster, 3000));
+        tag.addEventListener('touchend', () => clearTimeout(timer));
+    }
+
+    function showMaster() {
+        const data = localStorage.getItem('mautasim_master');
+        alert("MAUTASIM CLOUD RECORDS:\n" + (data ? data : "No records yet."));
+    }
 </script>
 </body>
 </html>
