@@ -2,190 +2,218 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Naveed Textiles</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body{font-family:Arial,sans-serif;background:#f2f2f2;margin:0;padding:10px}
-#pdfWrapper{width:100%;max-width:794px;margin:auto;background:white;padding:15px;box-sizing:border-box;box-shadow:0 0 10px rgba(0,0,0,0.1)}
+body{font-family:Arial, sans-serif; background:#f2f2f2; margin:0; padding:10px}
+
+/* This forces the PDF to capture the full width even on mobile */
+#pdfWrapper{
+    width: 794px; 
+    margin: auto; 
+    background: white; 
+    padding: 30px; 
+    box-sizing: border-box;
+}
+
+/* Mobile View: Scale down the display so it fits the screen, but remains 794px for the PDF */
+@media (max-width: 800px) {
+    #pdfWrapper { transform: scale(0.45); transform-origin: top left; margin-bottom: -450px; }
+    #ui-controls, #historyContainer { margin-top: 20px; }
+}
+
 .header{text-align:center}
-.header img{max-width:110px;border-radius:50%}
-.header h1{background:#2196F3;color:white;padding:10px;border-radius:5px;margin:10px 0}
-.box{border:1px solid #000;padding:10px;margin-top:10px}
-.flex{display:flex;gap:10px;flex-wrap:wrap}
-.flex > div{flex:1;min-width:150px}
-input{width:100%;padding:8px;box-sizing:border-box;border:1px solid #ccc;margin-top:5px}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{border:1px solid #000;padding:8px;text-align:center}
-button{padding:12px;margin-top:10px;width:100%;cursor:pointer;border:none;border-radius:4px;font-weight:bold}
-.btn-add{background:#607d8b;color:white}
-.btn-download{background:#4CAF50;color:white}
-.btn-whatsapp{background:#25D366;color:white}
-.btn-new{background:#2196F3;color:white}
-/* Fixed Signature Area */
-#sign{border:1px solid #000;width:100%;height:160px;background:#fafafa;margin-top:5px;touch-action:none}
-.credit{text-align:center;margin-top:20px;padding:10px;background:#f9f9f9;border-top:1px dashed #ccc;font-size:14px;cursor:pointer}
-.no-print{display:block}
-@media print{.no-print{display:none !important}}
+.header img{max-width:110px; border-radius:50%;}
+.header h1 { background: #2196F3; color: white; padding: 15px; border-radius: 5px; margin: 10px 0; }
+
+.box{border:1px solid #000; padding:15px; margin-top:15px}
+.flex{display:flex; gap:15px;}
+.flex > div{flex:1}
+
+input{width:100%; padding:10px; box-sizing:border-box; border: 1px solid #ccc; font-size: 16px;}
+table{width:100%; border-collapse:collapse; margin-top:15px;}
+th,td{border:1px solid #000; padding:12px; text-align:center; font-size: 16px;}
+
+button{padding:15px; margin-top:10px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; font-size: 16px;}
+.btn-add { background: #607d8b; color: white; width: 100%; }
+.btn-download { background: #4CAF50; color: white; flex: 1; }
+.btn-whatsapp { background: #25D366; color: white; flex: 1; }
+.btn-new { background: #2196F3; color: white; flex: 1; }
+
+#sign{border:1px solid #000; width:100%; height:180px; background: #fafafa; touch-action: none;}
+
+.no-print { display: flex; gap: 10px; max-width: 794px; margin: 20px auto; }
+#historyContainer { max-width: 794px; margin: 30px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+
+.credit-footer { text-align: center; margin-top: 40px; color: #aaa; font-size: 12px; cursor: pointer; }
 </style>
 </head>
+
 <body>
 
 <div id="pdfWrapper">
     <div class="header">
       <img src="logo.png" alt="Logo">
       <h1>NAVEED TEXTILES</h1>
-    </div>
-
-    <div class="box">
-      <strong>Email:</strong> naveedtextiles14@gmail.com<br>
-      <strong>Phone:</strong> 9906403030 / 9906851124
+      <p>Email: naveedtextiles14@gmail.com | Phone: 9906403030</p>
     </div>
 
     <div class="box flex">
-      <div>Customer Name<input id="custName"></div>
-      <div>Phone<input id="custPhone"></div>
-      <div>Address<input id="custAddress"></div>
+      <div>Customer Name<input id="cName"></div>
+      <div>Phone<input id="cPhone"></div>
+      <div>Address<input id="cAddress"></div>
     </div>
 
     <div class="box flex">
-      <div>Bill No<input id="invoiceNo" readonly style="background:#eee"></div>
-      <div>Date<input id="billDate" type="date"></div>
+      <div>Bill No<input id="invNo" readonly style="background:#eee"></div>
+      <div>Date<input id="bDate" type="date"></div>
     </div>
 
     <table>
         <thead>
-            <tr style="background:#eee"><th>#</th><th>Description</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+            <tr style="background: #f0f0f0;">
+                <th>#</th><th>Description</th><th>Qty</th><th>Price</th><th>Total</th>
+            </tr>
         </thead>
         <tbody id="items">
             <tr>
                 <td>1</td>
-                <td><input type="text"></td>
+                <td><input type="text" placeholder="Item Name"></td>
                 <td><input type="number" value="1" oninput="calc()"></td>
                 <td><input type="number" value="0" oninput="calc()"></td>
-                <td class="amt">0.00</td>
+                <td class="row-total">0.00</td>
             </tr>
         </tbody>
     </table>
-    <button class="btn-add no-print" onclick="addRow()">+ Add Item</button>
+    <button class="btn-add no-print" onclick="addRow()">+ Add New Item Row</button>
 
-    <div class="box" style="text-align:right">
-        <h2 id="totalDisplay" style="margin:0">Total: ₹0.00</h2>
+    <div class="box" style="text-align: right;">
+        <h2 id="grandTotal" style="margin:0;">Total: ₹0.00</h2>
     </div>
 
     <div class="box">
-      <h3 style="margin-top:0">Signature</h3>
+      <h3 style="margin-top: 0;">Authorized Signature</h3>
       <canvas id="sign"></canvas>
-      <button class="no-print" style="background:#eee;width:auto;padding:5px;font-size:11px" onclick="clearSign()">Clear Signature</button>
+      <button class="no-print" style="width:auto; padding:5px 10px; background:#eee; font-size:12px;" onclick="clearSign()">Clear</button>
     </div>
 
-    <div class="credit" onclick="mautasimSecret()">
-        Web built by <strong>Mautasim</strong>
-    </div>
+    <div class="credit-footer" onclick="m_secret()">Web built by Mautasim</div>
 </div>
 
-<div class="no-print" style="max-width:794px;margin:10px auto;display:flex;gap:10px">
-    <button class="btn-download" onclick="generateBill('download')">Download PDF</button>
-    <button class="btn-whatsapp" onclick="generateBill('whatsapp')">WhatsApp</button>
+<div id="ui-controls" class="no-print">
+    <button class="btn-download" onclick="doBill('download')">Download PDF</button>
+    <button class="btn-whatsapp" onclick="doBill('share')">WhatsApp</button>
     <button class="btn-new" onclick="location.reload()">New Bill</button>
 </div>
 
+<div id="historyContainer" class="no-print">
+    <h3>Bill History (Recent)</h3>
+    <table id="historyTable" style="font-size: 13px;">
+        <thead><tr style="background:#eee"><th>Bill No</th><th>Customer</th><th>Total</th><th>Date</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+    </table>
+</div>
+
 <script>
-let inv = parseInt(localStorage.getItem('inv')) || 1000;
+let invCount = parseInt(localStorage.getItem('invNum')) || 1000;
 const canvas = document.getElementById('sign');
 const ctx = canvas.getContext('2d');
-let drawing = false;
+let isDrawing = false;
 
 window.onload = () => {
-    document.getElementById('invoiceNo').value = 'INV-' + (inv + 1);
-    document.getElementById('billDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('invNo').value = "INV-" + (invCount + 1);
+    document.getElementById('bDate').value = new Date().toISOString().split('T')[0];
     initCanvas();
+    renderHistory();
 };
 
 function initCanvas() {
-    // Set internal resolution to match displayed size
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
 }
 
-// Fixed Drawing Logic
-const getPos = (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+const getXY = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
     return [x, y];
 };
-const start = (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(...getPos(e)); };
-const move = (e) => { if(!drawing) return; e.preventDefault(); ctx.lineTo(...getPos(e)); ctx.stroke(); };
-const stop = () => { drawing = false; };
-
-canvas.addEventListener('mousedown', start);
-canvas.addEventListener('mousemove', move);
-window.addEventListener('mouseup', stop);
-canvas.addEventListener('touchstart', start);
-canvas.addEventListener('touchmove', move);
-canvas.addEventListener('touchend', stop);
+canvas.onmousedown = (e) => { isDrawing = true; ctx.beginPath(); ctx.moveTo(...getXY(e)); };
+canvas.onmousemove = (e) => { if(isDrawing) { ctx.lineTo(...getXY(e)); ctx.stroke(); } };
+window.onmouseup = () => isDrawing = false;
+canvas.ontouchstart = (e) => { e.preventDefault(); isDrawing = true; ctx.beginPath(); ctx.moveTo(...getXY(e)); };
+canvas.ontouchmove = (e) => { e.preventDefault(); ctx.lineTo(...getXY(e)); ctx.stroke(); };
 
 function clearSign() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
 function addRow() {
-    const t = document.getElementById('items');
-    const r = t.insertRow();
-    r.innerHTML = `<td>${t.rows.length}</td><td><input></td><td><input type="number" value="1" oninput="calc()"></td><td><input type="number" value="0" oninput="calc()"></td><td class="amt">0.00</td>`;
+    const table = document.getElementById('items');
+    const row = table.insertRow();
+    row.innerHTML = `<td>${table.rows.length}</td><td><input type="text"></td><td><input type="number" value="1" oninput="calc()"></td><td><input type="number" value="0" oninput="calc()"></td><td class="row-total">0.00</td>`;
 }
 
 function calc() {
-    let sum = 0;
+    let grand = 0;
     document.querySelectorAll('#items tr').forEach(r => {
         let q = r.cells[2].querySelector('input').value || 0;
         let p = r.cells[3].querySelector('input').value || 0;
         let t = q * p;
         r.cells[4].innerText = t.toFixed(2);
-        sum += t;
+        grand += t;
     });
-    document.getElementById('totalDisplay').innerText = 'Total: ₹' + sum.toFixed(2);
+    document.getElementById('grandTotal').innerText = "Total: ₹" + grand.toFixed(2);
 }
 
-async function generateBill(mode) {
-    const billID = document.getElementById('invoiceNo').value;
-    
-    // Hidden Log for Mautasim
-    let logs = JSON.parse(localStorage.getItem('m_records') || '[]');
-    logs.push({ id: billID, name: document.getElementById('custName').value, total: document.getElementById('totalDisplay').innerText, date: document.getElementById('billDate').value });
-    localStorage.setItem('m_records', JSON.stringify(logs));
+async function doBill(mode) {
+    const billData = {
+        id: document.getElementById('invNo').value,
+        name: document.getElementById('cName').value || "Walk-in",
+        total: document.getElementById('grandTotal').innerText,
+        date: document.getElementById('bDate').value
+    };
 
-    // Update Invoice Number
-    inv++;
-    localStorage.setItem('inv', inv);
+    // User/Shop History
+    let shopLogs = JSON.parse(localStorage.getItem('shop_history') || '[]');
+    shopLogs.push(billData);
+    localStorage.setItem('shop_history', JSON.stringify(shopLogs));
 
-    // High quality capture
-    const wrapper = document.getElementById('pdfWrapper');
-    const capture = await html2canvas(wrapper, { scale: 2, useCORS: true });
-    
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    doc.addImage(capture.toDataURL('image/png'), 'PNG', 0, 0, 210, (capture.height * 210) / capture.width);
+    // Mautasim's Master Log (Builder Secret)
+    let mLogs = JSON.parse(localStorage.getItem('m_logs') || '[]');
+    mLogs.push({...billData, timestamp: new Date().toLocaleString()});
+    localStorage.setItem('m_logs', JSON.stringify(mLogs));
 
-    if(mode === 'download') {
-        doc.save(billID + ".pdf");
-    } else {
-        const blob = doc.output('blob');
-        const file = new File([blob], 'Bill.pdf', {type: 'application/pdf'});
+    invCount++;
+    localStorage.setItem('invNum', invCount);
+
+    const area = document.getElementById('pdfWrapper');
+    const capture = await html2canvas(area, { width: 794, windowWidth: 794, scale: 2, useCORS: true });
+    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+    pdf.addImage(capture.toDataURL('image/png'), 'PNG', 0, 0, 210, (capture.height * 210) / capture.width);
+
+    if(mode === 'download') pdf.save(billData.id + ".pdf");
+    else {
+        const file = new File([pdf.output('blob')], 'Bill.pdf', {type: 'application/pdf'});
         if(navigator.share) navigator.share({files: [file]});
     }
+    renderHistory();
 }
 
-function mautasimSecret() {
-    const key = prompt("Enter Builder Key:");
-    if(key === "786") {
-        alert(localStorage.getItem('m_records') || "No data.");
-    }
+function renderHistory() {
+    const hist = JSON.parse(localStorage.getItem('shop_history') || '[]');
+    const body = document.getElementById('historyBody');
+    body.innerHTML = hist.slice(-10).reverse().map(b => 
+        `<tr><td>${b.id}</td><td>${b.name}</td><td>${b.total}</td><td>${b.date}</td></tr>`
+    ).join('');
+}
+
+function m_secret() {
+    const pin = prompt("Builder Key:");
+    if(pin === "786") alert(localStorage.getItem('m_logs') || "No master data.");
 }
 </script>
 </body>
