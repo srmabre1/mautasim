@@ -16,8 +16,8 @@ body{font-family:Arial, sans-serif;background:#f2f2f2;margin:0;padding:10px}
 .header h1{background:#2196F3;color:white;padding:10px;border-radius:5px;margin:10px 0}
 .box{border:1px solid #000;padding:10px;margin-top:10px}
 .flex{display:flex;gap:10px;flex-wrap:wrap}
-.flex > div{flex:1}
-input{width:100%;padding:8px;box-sizing:border-box}
+.flex > div{flex:1; min-width: 150px;}
+input{width:100%;padding:8px;box-sizing:border-box;border:1px solid #ccc;margin-top:5px}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{border:1px solid #000;padding:8px;text-align:center}
 button{padding:12px;margin-top:10px;width:100%;cursor:pointer;border:none;border-radius:4px;font-weight:bold}
@@ -45,39 +45,40 @@ canvas{border:1px solid #000;width:100%;height:160px;touch-action:none;backgroun
     </div>
 
     <div class="box flex">
-      <div>Customer Name<input id="custName"></div>
-      <div>Phone<input id="custPhone"></div>
+      <div>Customer Name<input id="custName" type="text"></div>
+      <div>Phone<input id="custPhone" type="text"></div>
+      <div>Address<input id="custAddress" type="text"></div>
     </div>
 
     <div class="box flex">
-      <div>Bill No<input id="invoiceNo" readonly></div>
+      <div>Bill No<input id="invoiceNo" readonly style="background:#eee"></div>
       <div>Date<input id="billDate" type="date"></div>
     </div>
 
     <table>
         <thead>
-            <tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
+            <tr style="background:#eee"><th>#</th><th>Item Description</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
         </thead>
         <tbody id="items">
             <tr>
                 <td>1</td>
-                <td><input></td>
+                <td><input type="text" placeholder="Item Name"></td>
                 <td><input type="number" value="1" oninput="calc()"></td>
                 <td><input type="number" value="0" oninput="calc()"></td>
                 <td class="amt">0.00</td>
             </tr>
         </tbody>
     </table>
-    <button class="btn-add no-print" onclick="addRow()">+ Add Item Row</button>
+    <button class="btn-add no-print" type="button" onclick="addRow()">+ Add New Item Row</button>
 
-    <div class="box">
-        <h2 id="total">Total: ₹0.00</h2>
+    <div class="box" style="text-align:right">
+        <h2 id="totalDisplay" style="margin:0">Total: ₹0.00</h2>
     </div>
 
     <div class="box">
       <h3 style="margin-top:0">Signature</h3>
       <canvas id="sign"></canvas>
-      <button class="no-print" style="background:#eee;color:#333;width:auto;padding:5px;font-size:11px" onclick="clearSign()">Clear</button>
+      <button class="no-print" type="button" style="background:#eee;color:#333;width:auto;padding:5px;font-size:11px" onclick="clearSign()">Clear Signature</button>
     </div>
 
     <div class="credit" onclick="mautasimSecret()">
@@ -86,9 +87,9 @@ canvas{border:1px solid #000;width:100%;height:160px;touch-action:none;backgroun
 </div>
 
 <div class="no-print" style="max-width:794px;margin:10px auto;display:flex;gap:10px">
-    <button class="btn-download" onclick="generateBill('download')">Download PDF</button>
-    <button class="btn-whatsapp" onclick="generateBill('whatsapp')">WhatsApp</button>
-    <button class="btn-new" onclick="location.reload()">New Bill</button>
+    <button class="btn-download" type="button" onclick="generateBill('download')">Download PDF</button>
+    <button class="btn-whatsapp" type="button" onclick="generateBill('whatsapp')">Send WhatsApp</button>
+    <button class="btn-new" type="button" onclick="resetForm()">New Invoice</button>
 </div>
 
 <script>
@@ -108,16 +109,25 @@ function setupCanvas() {
     canvas.height = canvas.offsetHeight;
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000';
+    
     const getPos = (e) => {
         const r = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         return [clientX - r.left, clientY - r.top];
     };
+    
     const start = (e) => { drawing = true; ctx.beginPath(); const [x,y] = getPos(e); ctx.moveTo(x,y); };
-    const move = (e) => { if(!drawing) return; e.preventDefault(); const [x,y] = getPos(e); ctx.lineTo(...getPos(e)); ctx.stroke(); };
-    canvas.onmousedown = start; canvas.onmousemove = move; window.onmouseup = () => drawing = false;
-    canvas.ontouchstart = start; canvas.ontouchmove = move; window.ontouchend = () => drawing = false;
+    const move = (e) => { if(!drawing) return; e.preventDefault(); const [x,y] = getPos(e); ctx.lineTo(x,y); ctx.stroke(); };
+    const stop = () => { drawing = false; };
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', stop);
+    canvas.addEventListener('touchstart', (e) => start(e.touches[0]), {passive: false});
+    canvas.addEventListener('touchmove', (e) => move(e.touches[0]), {passive: false});
+    window.addEventListener('touchend', stop);
 }
 
 function clearSign() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
@@ -125,19 +135,21 @@ function clearSign() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 function addRow() {
     const t = document.getElementById('items');
     const r = t.insertRow();
-    r.innerHTML = `<td>${t.rows.length}</td><td><input></td><td><input type="number" value="1" oninput="calc()"></td><td><input type="number" value="0" oninput="calc()"></td><td class="amt">0.00</td>`;
+    const rowNum = t.rows.length;
+    r.innerHTML = `<td>${rowNum}</td><td><input type="text"></td><td><input type="number" value="1" oninput="calc()"></td><td><input type="number" value="0" oninput="calc()"></td><td class="amt">0.00</td>`;
 }
 
 function calc() {
     let sum = 0;
-    document.querySelectorAll('#items tr').forEach(r => {
-        let q = r.cells[2].querySelector('input').value;
-        let p = r.cells[3].querySelector('input').value;
+    const rows = document.querySelectorAll('#items tr');
+    rows.forEach(r => {
+        let q = parseFloat(r.cells[2].querySelector('input').value) || 0;
+        let p = parseFloat(r.cells[3].querySelector('input').value) || 0;
         let total = q * p;
         r.cells[4].innerText = total.toFixed(2);
         sum += total;
     });
-    document.getElementById('total').innerText = 'Total: ₹' + sum.toFixed(2);
+    document.getElementById('totalDisplay').innerText = 'Total: ₹' + sum.toFixed(2);
 }
 
 async function generateBill(type) {
@@ -145,7 +157,7 @@ async function generateBill(type) {
     const billData = {
         id: document.getElementById('invoiceNo').value,
         name: document.getElementById('custName').value,
-        total: document.getElementById('total').innerText,
+        total: document.getElementById('totalDisplay').innerText,
         date: document.getElementById('billDate').value
     };
     let logs = JSON.parse(localStorage.getItem('m_records') || '[]');
@@ -156,14 +168,26 @@ async function generateBill(type) {
     localStorage.setItem('inv', inv);
 
     const pdfArea = document.getElementById('pdfWrapper');
-    const c = await html2canvas(pdfArea, {scale: 2});
+    const c = await html2canvas(pdfArea, {scale: 2, useCORS: true});
     const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
     pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, 210, (c.height * 210) / c.width);
     
-    if(type === 'download') pdf.save(billData.id + '.pdf');
-    else {
-        const file = new File([pdf.output('blob')], 'Bill.pdf', {type: 'application/pdf'});
-        if(navigator.share) navigator.share({files: [file]});
+    if(type === 'download') {
+        pdf.save(billData.id + '.pdf');
+    } else {
+        const blob = pdf.output('blob');
+        const file = new File([blob], 'Invoice.pdf', {type: 'application/pdf'});
+        if(navigator.share) {
+            navigator.share({files: [file], title: 'Invoice'});
+        } else {
+            alert("Sharing not supported on this browser.");
+        }
+    }
+}
+
+function resetForm() {
+    if(confirm("Are you sure you want to start a new bill?")) {
+        location.reload();
     }
 }
 
