@@ -9,232 +9,181 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 10px; touch-action: manipulation; }
-    #pdfWrapper { max-width: 800px; margin: auto; background: white; padding: 20px; box-sizing: border-box; border: 1px solid #ccc; }
-    
-    .header { text-align: center; }
-    .header img { max-width: 100px; border-radius: 50%; }
-    .header h1 { background: #2196F3; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 24px; }
-
-    .box { border: 1px solid #000; padding: 10px; margin-top: 10px; }
-    .flex { display: flex; gap: 10px; flex-wrap: wrap; }
-    .flex > div { flex: 1; min-width: 140px; }
-
-    input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; font-size: 14px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-    th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+    body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
+    #pdfWrapper { max-width: 600px; margin: auto; background: white; padding: 15px; border: 1px solid #000; }
+    .header { text-align: center; margin-bottom: 10px; }
+    .header h1 { background: #2196F3; color: white; padding: 10px; margin: 0; font-size: 20px; border-radius: 4px; }
+    .box { border: 1px solid #000; padding: 8px; margin-top: 8px; }
+    .flex { display: flex; gap: 8px; flex-wrap: wrap; }
+    .flex div { flex: 1; min-width: 120px; font-size: 12px; font-weight: bold; }
+    input { width: 100%; padding: 6px; margin-top: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #000; padding: 6px; text-align: center; font-size: 12px; }
     th { background: #eee; }
-
-    /* SIGNATURE AREA - FIXED */
-    #signature-container { position: relative; width: 100%; height: 160px; border: 2px dashed #999; background: #fafafa; margin-top: 10px; touch-action: none; }
-    canvas { width: 100%; height: 100%; cursor: crosshair; }
-
-    .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; max-width: 800px; margin-left: auto; margin-right: auto; }
-    button { padding: 12px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; flex: 1; min-width: 120px; }
-    
-    .btn-add { background: #607d8b; color: white; width: 100%; margin-top: 10px; }
-    .btn-pdf { background: #4CAF50; color: white; }
-    .btn-wa { background: #25D366; color: white; }
-    .btn-new { background: #2196F3; color: white; }
-
-    .history-box { background: white; padding: 15px; margin-top: 20px; border: 1px solid #ccc; max-width: 800px; margin-left: auto; margin-right: auto; }
-    .builder-credit { text-align: center; padding: 15px; color: #bbb; font-size: 11px; cursor: pointer; }
+    #signCanvas { border: 1px solid #000; background: #fafafa; width: 100%; height: 120px; touch-action: none; margin-top: 5px; }
+    .controls { display: flex; gap: 8px; margin-top: 15px; max-width: 600px; margin-left: auto; margin-right: auto; }
+    button { padding: 12px; flex: 1; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
+    .btn-add { background: #607d8b; width: 100%; margin-top: 10px; }
+    .btn-pdf { background: #4CAF50; }
+    .btn-wa { background: #25D366; }
+    .btn-new { background: #2196F3; }
+    .history-box { background: white; padding: 10px; border: 1px solid #ccc; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto; font-size: 12px; }
 </style>
 </head>
 <body>
 
 <div id="pdfWrapper">
     <div class="header">
-      <img src="logo.png" alt="Logo">
-      <h1>NAVEED TEXTILES</h1>
-      <p style="margin:5px 0;">naveedtextiles14@gmail.com | 9906403030</p>
+        <h1>NAVEED TEXTILES</h1>
+        <p style="font-size:11px; margin:5px 0;">naveedtextiles14@gmail.com | 9906403030</p>
     </div>
 
     <div class="box flex">
-      <div>Customer Name<input id="cN"></div>
-      <div>Phone<input id="cP"></div>
-      <div>Address<input id="cA"></div>
+        <div>Name<input id="cN"></div>
+        <div>Phone<input id="cP"></div>
+        <div>Address<input id="cA"></div>
     </div>
 
     <div class="box flex">
-      <div>Bill No<input id="iN" readonly style="background:#f9f9f9"></div>
-      <div>Date<input id="bD" type="date"></div>
+        <div>Invoice<input id="iN" readonly style="background:#eee"></div>
+        <div>Date<input id="bD" type="date"></div>
     </div>
 
     <table>
         <thead>
-            <tr><th>#</th><th>Description</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+            <tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
         </thead>
         <tbody id="items">
             <tr>
                 <td>1</td>
-                <td><input type="text" placeholder="Item Name"></td>
+                <td><input type="text"></td>
                 <td><input type="number" value="1" oninput="calc()"></td>
                 <td><input type="number" value="0" oninput="calc()"></td>
                 <td class="row-total">0.00</td>
             </tr>
         </tbody>
     </table>
-    
-    <button class="btn-add no-print" onclick="addRow()">+ Add Line</button>
+    <button class="btn-add" onclick="addRow()">+ Add Line</button>
 
     <div class="box" style="text-align: right;">
-        <h2 id="gTotal" style="margin:0;">Total: ₹0.00</h2>
+        <h2 id="gTotal" style="margin:0; font-size:18px;">Total: ₹0.00</h2>
     </div>
 
     <div class="box">
-      <strong>Authorized Signature:</strong>
-      <div id="signature-container">
-          <canvas id="signCanvas"></canvas>
-      </div>
-      <button class="no-print" style="width:auto; padding:5px 10px; background:#f0f0f0; margin-top:5px; font-size:11px; color:#333; border:1px solid #ccc;" onclick="clearS()">Clear Signature</button>
+        <strong>Signature:</strong><br>
+        <canvas id="signCanvas"></canvas>
+        <button onclick="clearS()" style="background:#eee; color:#333; padding:4px; font-size:10px; width:auto; border:1px solid #ccc; margin-top:4px;">Clear Sign</button>
     </div>
-
-    <div class="builder-credit" onclick="m_secret()">Software Architecture: Mautasim</div>
+    
+    <div style="text-align:center; color:#ccc; font-size:10px; margin-top:10px;" onclick="m_secret()">Software by Mautasim</div>
 </div>
 
 <div class="controls">
-    <button class="btn-pdf" onclick="save('pdf')">Download PDF</button>
-    <button class="btn-wa" onclick="save('wa')">WhatsApp Share</button>
-    <button class="btn-new" onclick="if(confirm('Start new bill?')) location.reload()">New Bill</button>
+    <button class="btn-pdf" onclick="saveBill('download')">PDF</button>
+    <button class="btn-wa" onclick="saveBill('share')">WhatsApp</button>
+    <button class="btn-new" onclick="location.reload()">New</button>
 </div>
 
 <div class="history-box">
-    <h3>Bill History</h3>
-    <table id="hTable" style="width:100%; font-size:12px;">
-        <thead><tr style="background:#eee"><th>Bill #</th><th>Customer</th><th>Total</th></tr></thead>
-        <tbody id="hBody"></tbody>
-    </table>
+    <strong>Recent History:</strong>
+    <div id="hBody"></div>
 </div>
 
 <script>
-let inv = parseInt(localStorage.getItem('invN')) || 1000;
-const canvas = document.getElementById('signCanvas');
-const ctx = canvas.getContext('2d');
-let drawing = false;
+    let invNum = parseInt(localStorage.getItem('invNum')) || 1000;
+    const canvas = document.getElementById('signCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
 
-window.onload = () => {
-    document.getElementById('iN').value = "NT-" + (inv + 1);
-    document.getElementById('bD').value = new Date().toISOString().split('T')[0];
-    resizeCanvas();
-    showH();
-};
-
-function resizeCanvas() {
-    // Set the canvas internal size to match the CSS size
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000';
-}
-
-// SMOOTH DRAWING LOGIC
-function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-        x: clientX - rect.left,
-        y: clientY - rect.top
-    };
-}
-
-function start(e) {
-    drawing = true;
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    e.preventDefault();
-}
-
-function move(e) {
-    if (!drawing) return;
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    e.preventDefault();
-}
-
-function stop() { drawing = false; }
-
-// Event Listeners for both Mouse and Touch
-canvas.addEventListener('mousedown', start);
-canvas.addEventListener('mousemove', move);
-window.addEventListener('mouseup', stop);
-
-canvas.addEventListener('touchstart', start, { passive: false });
-canvas.addEventListener('touchmove', move, { passive: false });
-canvas.addEventListener('touchend', stop);
-
-function clearS() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
-function addRow() {
-    const t = document.getElementById('items');
-    const r = t.insertRow();
-    r.innerHTML = `<td>${t.rows.length}</td><td><input></td><td><input type="number" value="1" oninput="calc()"></td><td><input type="number" value="0" oninput="calc()"></td><td class="row-total">0.00</td>`;
-}
-
-function calc() {
-    let g = 0;
-    document.querySelectorAll('#items tr').forEach(r => {
-        let q = r.cells[2].querySelector('input').value || 0;
-        let p = r.cells[3].querySelector('input').value || 0;
-        let t = q * p;
-        r.cells[4].innerText = t.toFixed(2);
-        g += t;
-    });
-    document.getElementById('gTotal').innerText = "Total: ₹" + g.toFixed(2);
-}
-
-async function save(type) {
-    const data = {
-        id: document.getElementById('iN').value,
-        name: document.getElementById('cN').value || 'Walk-in',
-        total: document.getElementById('gTotal').innerText,
-        date: document.getElementById('bD').value
+    window.onload = () => {
+        document.getElementById('iN').value = "NT-" + (invNum + 1);
+        document.getElementById('bD').value = new Date().toISOString().split('T')[0];
+        // FIX: Set internal canvas resolution immediately
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        showHistory();
     };
 
-    // Store Records for Shop
-    let h = JSON.parse(localStorage.getItem('shopH') || '[]');
-    h.push(data);
-    localStorage.setItem('shopH', JSON.stringify(h));
-
-    // Secret Builder Record
-    let m = JSON.parse(localStorage.getItem('m_data') || '[]');
-    m.push({...data, ts: new Date().toLocaleString()});
-    localStorage.setItem('m_data', JSON.stringify(m));
-
-    inv++; localStorage.setItem('invN', inv);
-
-    const el = document.getElementById('pdfWrapper');
-    const noPrint = document.querySelectorAll('.no-print');
-    noPrint.forEach(b => b.style.visibility = 'hidden'); // Hide buttons from PDF
-
-    const capture = await html2canvas(el, { scale: 2 });
-    noPrint.forEach(b => b.style.visibility = 'visible');
-
-    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-    pdf.addImage(capture.toDataURL('image/png'), 'PNG', 0, 0, 210, (capture.height * 210) / capture.width);
-
-    if (type === 'pdf') pdf.save(data.id + ".pdf");
-    else {
-        const file = new File([pdf.output('blob')], 'Bill.pdf', {type: 'application/pdf'});
-        if (navigator.share) navigator.share({ files: [file] });
+    // --- SIGNATURE LOGIC ---
+    function getXY(e) {
+        const r = canvas.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return [cx - r.left, cy - r.top];
     }
-    showH();
-}
+    function start(e) { drawing = true; ctx.beginPath(); ctx.moveTo(...getXY(e)); e.preventDefault(); }
+    function move(e) { if(!drawing) return; ctx.lineTo(...getXY(e)); ctx.stroke(); e.preventDefault(); }
+    function stop() { drawing = false; }
 
-function showH() {
-    const h = JSON.parse(localStorage.getItem('shopH') || '[]');
-    const b = document.getElementById('hBody');
-    b.innerHTML = h.slice(-5).reverse().map(i => `<tr><td>${i.id}</td><td>${i.name}</td><td>${i.total}</td></tr>`).join('');
-}
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', stop);
+    canvas.addEventListener('touchstart', start, {passive: false});
+    canvas.addEventListener('touchmove', move, {passive: false});
+    canvas.addEventListener('touchend', stop);
 
-function m_secret() {
-    const p = prompt("Enter Master Key:");
-    if (p === "786") alert(localStorage.getItem('m_data'));
-}
+    function clearS() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+    function addRow() {
+        const t = document.getElementById('items');
+        const r = t.insertRow();
+        r.innerHTML = `<td>${t.rows.length}</td><td><input></td><td><input type="number" value="1" oninput="calc()"></td><td><input type="number" value="0" oninput="calc()"></td><td class="row-total">0.00</td>`;
+    }
+
+    function calc() {
+        let total = 0;
+        document.querySelectorAll('#items tr').forEach(r => {
+            let q = r.cells[2].querySelector('input').value || 0;
+            let p = r.cells[3].querySelector('input').value || 0;
+            let amt = q * p;
+            r.cells[4].innerText = amt.toFixed(2);
+            total += amt;
+        });
+        document.getElementById('gTotal').innerText = "Total: ₹" + total.toFixed(2);
+    }
+
+    async function saveBill(mode) {
+        const id = document.getElementById('iN').value;
+        const name = document.getElementById('cN').value || "Cash";
+        const amt = document.getElementById('gTotal').innerText;
+
+        // Hidden recording
+        let m_data = JSON.parse(localStorage.getItem('m_data') || '[]');
+        m_data.push({id, name, amt, date: new Date().toLocaleString()});
+        localStorage.setItem('m_data', JSON.stringify(m_data));
+
+        invNum++;
+        localStorage.setItem('invNum', invNum);
+
+        // PDF Generation
+        const el = document.getElementById('pdfWrapper');
+        const canvasCap = await html2canvas(el, {scale: 2});
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(canvasCap.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvasCap.height * 210) / canvasCap.width);
+
+        if(mode === 'download') {
+            pdf.save(id + ".pdf");
+        } else {
+            const file = new File([pdf.output('blob')], 'Bill.pdf', {type: 'application/pdf'});
+            if(navigator.share) navigator.share({files: [file]});
+        }
+        showHistory();
+    }
+
+    function showHistory() {
+        let data = JSON.parse(localStorage.getItem('m_data') || '[]');
+        document.getElementById('hBody').innerHTML = data.slice(-3).reverse().map(b => 
+            `<div style="border-bottom:1px solid #eee; padding:4px;">${b.id} - ${b.name} - ${b.amt}</div>`
+        ).join('');
+    }
+
+    function m_secret() {
+        let p = prompt("Key:");
+        if(p === "786") alert(localStorage.getItem('m_data'));
+    }
 </script>
 </body>
 </html>
